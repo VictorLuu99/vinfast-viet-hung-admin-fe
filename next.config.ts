@@ -8,8 +8,6 @@ const nextConfig: NextConfig = {
     remotePatterns: [
     ],
   },
-  // Asset prefix for Cloudflare Pages
-  // assetPrefix: process.env.NODE_ENV === 'production' ? '/vinfast-viethung' : '',
 }
 
 export default nextConfig

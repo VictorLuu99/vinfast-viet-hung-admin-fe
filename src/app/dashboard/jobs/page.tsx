@@ -11,46 +11,32 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label'
 import { BulletPointTextarea } from '@/components/BulletPointTextarea'
 import { apiClient, formatDate, getStatusBadgeVariant } from '@/lib/utils'
-import { Search, Plus, Edit, Trash2, Briefcase, MapPin, Clock, Calendar, Globe, Filter } from 'lucide-react'
+import { Search, Plus, Edit, Trash2, Briefcase, MapPin, Clock, Calendar, Filter } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/toast'
 
+// VinFast Vietnamese-only job interface
 interface Job {
   id: number
-  title_en: string
-  title_cn: string  
-  title_vn: string
-  description_en: string
-  description_cn: string
-  description_vn: string
-  requirements_en: string
-  requirements_cn: string
-  requirements_vn: string
-  benefits_en?: string
-  benefits_cn?: string
-  benefits_vn?: string
-  location_en: string
-  location_cn: string
-  location_vn: string
+  title: string
+  description: string
+  requirements?: string
+  benefits?: string
+  location: string
   department: string
-  employment_type: 'full-time' | 'part-time' | 'contract' | 'internship'
+  employment_type: 'full_time' | 'part_time' | 'contract' | 'internship'
   experience_level: 'entry' | 'mid' | 'senior' | 'executive'
   salary_min?: number
   salary_max?: number
   salary_currency?: string
-  status: 'active' | 'published' | 'closed' | 'draft'
+  status: 'active' | 'closed' | 'draft'
   priority: number
-  featured?: boolean
   application_deadline?: string
   contact_email?: string
   contact_phone?: string
   created_at: string
   updated_at: string
-  // Computed fields from API based on language
-  title?: string
-  description?: string
-  location?: string
 }
 
 export default function JobsPage() {
@@ -68,51 +54,35 @@ export default function JobsPage() {
   const [loading, setLoading] = React.useState(true)
   const [searchQuery, setSearchQuery] = React.useState('')
   const [statusFilter, setStatusFilter] = React.useState<string>('all')
-  const [languageFilter, setLanguageFilter] = React.useState<string>('vn')
   const [selectedJob, setSelectedJob] = React.useState<Job | null>(null)
   const [isEditing, setIsEditing] = React.useState(false)
   const [page, setPage] = React.useState(1)
   const [totalPages, setTotalPages] = React.useState(1)
-  
-  // Form state for creating/editing jobs
+
+  // Form state for creating/editing jobs (Vietnamese-only)
   const [formData, setFormData] = React.useState({
-    title_en: '',
-    title_cn: '',
-    title_vn: '',
-    description_en: '',
-    description_cn: '',
-    description_vn: '',
-    requirements_en: '',
-    requirements_cn: '',
-    requirements_vn: '',
-    benefits_en: '',
-    benefits_cn: '',
-    benefits_vn: '',
-    location_en: 'Vietnam',
-    location_cn: '越南',
-    location_vn: 'Việt Nam',
-    salary_min: '',
-    salary_max: '',
-    salary_currency: 'USD',
-    employment_type: 'full-time' as 'full-time' | 'part-time' | 'contract' | 'internship',
+    title: '',
+    description: '',
+    requirements: '',
+    benefits: '',
+    location: 'Việt Nam',
+    salary_min: 0,
+    salary_max: 0,
+    salary_currency: 'VND',
+    employment_type: 'full_time' as 'full_time' | 'part_time' | 'contract' | 'internship',
     experience_level: 'mid' as 'entry' | 'mid' | 'senior' | 'executive',
     department: '',
-    status: 'active' as 'active' | 'published' | 'closed' | 'draft',
+    status: 'active' as 'active' | 'closed' | 'draft',
     priority: 0,
     application_deadline: '',
     contact_email: '',
-    contact_phone: '',
-    slug: '',
-    location: '',
-    salary_range: '',
-    expires_at: '',
-    featured: false
+    contact_phone: ''
   })
 
   const fetchJobs = React.useCallback(async () => {
     try {
       setLoading(true)
-      const response = await apiClient.getJobs({ page, limit: 10, lang: languageFilter }) as unknown
+      const response = await apiClient.getJobs({ page, limit: 10 }) as unknown
       // Try to safely extract data and pagination
       const responseData = response as { data?: unknown[]; pagination?: { totalPages?: number } }
       setJobs(Array.isArray(responseData?.data) ? (responseData.data as Job[]) : [])
@@ -127,7 +97,7 @@ export default function JobsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, languageFilter, showToast])
+  }, [page, showToast])
 
   React.useEffect(() => {
     fetchJobs()
@@ -185,37 +155,22 @@ export default function JobsPage() {
 
   const resetForm = () => {
     setFormData({
-      title_en: '',
-      title_cn: '',
-      title_vn: '',
-      description_en: '',
-      description_cn: '',
-      description_vn: '',
-      requirements_en: '',
-      requirements_cn: '',
-      requirements_vn: '',
-      benefits_en: '',
-      benefits_cn: '',
-      benefits_vn: '',
-      location_en: 'Vietnam',
-      location_cn: '越南',
-      location_vn: 'Việt Nam',
-      salary_min: '',
-      salary_max: '',
-      salary_currency: 'USD',
-      employment_type: 'full-time',
+      title: '',
+      description: '',
+      requirements: '',
+      benefits: '',
+      location: 'Việt Nam',
+      salary_min: 0,
+      salary_max: 0,
+      salary_currency: 'VND',
+      employment_type: 'full_time',
       experience_level: 'mid',
       department: '',
       status: 'active',
       priority: 0,
       application_deadline: '',
       contact_email: '',
-      contact_phone: '',
-      slug: '',
-      location: '',
-      salary_range: '',
-      expires_at: '',
-      featured: false
+      contact_phone: ''
     })
   }
 
@@ -223,37 +178,22 @@ export default function JobsPage() {
     if (job) {
       setSelectedJob(job)
       setFormData({
-        title_en: job.title_en || '',
-        title_cn: job.title_cn || '',
-        title_vn: job.title_vn || '',
-        description_en: job.description_en || '',
-        description_cn: job.description_cn || '',
-        description_vn: job.description_vn || '',
-        requirements_en: job.requirements_en || '',
-        requirements_cn: job.requirements_cn || '',
-        requirements_vn: job.requirements_vn || '',
-        benefits_en: job.benefits_en || '',
-        benefits_cn: job.benefits_cn || '',
-        benefits_vn: job.benefits_vn || '',
-        location_en: job.location_en || 'Vietnam',
-        location_cn: job.location_cn || '越南',
-        location_vn: job.location_vn || 'Việt Nam',
-        salary_min: job.salary_min?.toString() || '',
-        salary_max: job.salary_max?.toString() || '',
-        salary_currency: job.salary_currency || 'USD',
-        employment_type: job.employment_type || 'full-time',
+        title: job.title || '',
+        description: job.description || '',
+        requirements: job.requirements || '',
+        benefits: job.benefits || '',
+        location: job.location || 'Việt Nam',
+        salary_min: job.salary_min || 0,
+        salary_max: job.salary_max || 0,
+        salary_currency: job.salary_currency || 'VND',
+        employment_type: job.employment_type || 'full_time',
         experience_level: job.experience_level || 'mid',
         department: job.department || '',
         status: job.status || 'active',
         priority: job.priority || 0,
         application_deadline: job.application_deadline ? job.application_deadline.split('T')[0] : '',
         contact_email: job.contact_email || '',
-        contact_phone: job.contact_phone || '',
-        slug: '',
-        location: job.location || '',
-        salary_range: '',
-        expires_at: '',
-        featured: job.featured || false
+        contact_phone: job.contact_phone || ''
       })
     } else {
       setSelectedJob(null)
@@ -262,31 +202,17 @@ export default function JobsPage() {
     setIsEditing(true)
   }
 
+  // VinFast Vietnamese-only helper functions
   const getTitle = (job: Job): string => {
-    switch (languageFilter) {
-      case 'en': return job.title_en || job.title_vn || job.title_cn
-      case 'cn': return job.title_cn || job.title_vn || job.title_en
-      default: return job.title_vn || job.title_en || job.title_cn
-    }
+    return job.title || ''
   }
 
   const getDescription = (job: Job): string => {
-    switch (languageFilter) {
-      case 'en': return job.description_en || job.description_vn || job.description_cn
-      case 'cn': return job.description_cn || job.description_vn || job.description_en
-      default: return job.description_vn || job.description_en || job.description_cn
-    }
+    return job.description || ''
   }
 
   const getLocation = (job: Job): string => {
-    // Use API computed field first, then fallback to language-specific fields
-    if (job.location) return job.location
-    
-    switch (languageFilter) {
-      case 'en': return job.location_en || job.location_vn || job.location_cn
-      case 'cn': return job.location_cn || job.location_vn || job.location_en
-      default: return job.location_vn || job.location_en || job.location_cn
-    }
+    return job.location || 'Việt Nam'
   }
 
   const filteredJobs = jobs.filter(job => {
@@ -409,17 +335,6 @@ export default function JobsPage() {
                   <SelectItem value="closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
-              <Globe className="h-4 w-4 text-muted-foreground" />
-              <Select value={languageFilter} onValueChange={setLanguageFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="vn">Tiếng Việt</SelectItem>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="cn">中文</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 
@@ -450,11 +365,6 @@ export default function JobsPage() {
                       <div className="space-y-1">
                         <div className="font-medium flex items-center gap-2">
                           {getTitle(job)}
-                          {job.featured && (
-                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
-                              Featured
-                            </Badge>
-                          )}
                         </div>
                         <div className="text-sm text-muted-foreground max-w-[300px] truncate">
                           {getDescription(job).slice(0, 100)}...
@@ -663,153 +573,60 @@ export default function JobsPage() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="featured"
-                checked={formData.featured}
-                onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
+
+            {/* Job Title */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Tên vị trí tuyển dụng</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Nhập tên vị trí tuyển dụng..."
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Job Description */}
+            <div className="space-y-4">
+              <BulletPointTextarea
+                id="description"
+                label="Mô tả công việc"
+                value={formData.description}
+                onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+                placeholder="• Mô tả chi tiết về công việc&#10;• Trách nhiệm chính của vị trí&#10;• Môi trường làm việc tại VinFast VietHung"
+                minRows={4}
+                maxRows={8}
+                required
               />
-              <Label htmlFor="featured">Featured Job Posting</Label>
             </div>
 
-            {/* Multi-language Titles */}
+            {/* Job Requirements */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Job Titles</h3>
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="title_vn">Title (Vietnamese)</Label>
-                  <Input
-                    id="title_vn"
-                    value={formData.title_vn}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title_vn: e.target.value }))}
-                    placeholder="Tên vị trí tuyển dụng..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="title_en">Title (English)</Label>
-                  <Input
-                    id="title_en"
-                    value={formData.title_en}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title_en: e.target.value }))}
-                    placeholder="Job position title..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="title_cn">Title (Chinese)</Label>
-                  <Input
-                    id="title_cn"
-                    value={formData.title_cn}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title_cn: e.target.value }))}
-                    placeholder="职位名称..."
-                  />
-                </div>
-              </div>
+              <BulletPointTextarea
+                id="requirements"
+                label="Yêu cầu công việc"
+                value={formData.requirements}
+                onChange={(value) => setFormData(prev => ({ ...prev, requirements: value }))}
+                placeholder="• Tốt nghiệp đại học chuyên ngành liên quan&#10;• Có kinh nghiệm làm việc trong ngành ô tô&#10;• Kỹ năng giao tiếp và bán hàng tốt&#10;• Yêu thích sản phẩm xe điện VinFast"
+                minRows={4}
+                maxRows={10}
+                required
+              />
             </div>
 
-            {/* Multi-language Descriptions */}
+            {/* Job Benefits */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Job Descriptions</h3>
-              <div className="space-y-4">
-                <BulletPointTextarea
-                  id="description_vn"
-                  label="Description (Vietnamese)"
-                  value={formData.description_vn}
-                  onChange={(value) => setFormData(prev => ({ ...prev, description_vn: value }))}
-                  placeholder="• Mô tả chi tiết về công việc&#10;• Trách nhiệm chính của vị trí&#10;• Môi trường làm việc"
-                  minRows={4}
-                  maxRows={8}
-                />
-                <BulletPointTextarea
-                  id="description_en"
-                  label="Description (English)"
-                  value={formData.description_en}
-                  onChange={(value) => setFormData(prev => ({ ...prev, description_en: value }))}
-                  placeholder="• Detailed job description&#10;• Main responsibilities&#10;• Work environment details"
-                  minRows={4}
-                  maxRows={8}
-                />
-                <BulletPointTextarea
-                  id="description_cn"
-                  label="Description (Chinese)"
-                  value={formData.description_cn}
-                  onChange={(value) => setFormData(prev => ({ ...prev, description_cn: value }))}
-                  placeholder="• 详细的工作描述&#10;• 主要职责&#10;• 工作环境详情"
-                  minRows={4}
-                  maxRows={8}
-                />
-              </div>
-            </div>
-
-            {/* Multi-language Requirements */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Requirements</h3>
-              <div className="space-y-4">
-                <BulletPointTextarea
-                  id="requirements_vn"
-                  label="Requirements (Vietnamese)"
-                  value={formData.requirements_vn}
-                  onChange={(value) => setFormData(prev => ({ ...prev, requirements_vn: value }))}
-                  placeholder="• Tốt nghiệp đại học chuyên ngành liên quan&#10;• Có kinh nghiệm làm việc tối thiểu 2 năm&#10;• Kỹ năng giao tiếp tốt"
-                  minRows={4}
-                  maxRows={10}
-                  required
-                />
-                <BulletPointTextarea
-                  id="requirements_en"
-                  label="Requirements (English)"
-                  value={formData.requirements_en}
-                  onChange={(value) => setFormData(prev => ({ ...prev, requirements_en: value }))}
-                  placeholder="• Bachelor's degree in related field&#10;• Minimum 2 years of relevant experience&#10;• Excellent communication skills"
-                  minRows={4}
-                  maxRows={10}
-                  required
-                />
-                <BulletPointTextarea
-                  id="requirements_cn"
-                  label="Requirements (Chinese)"
-                  value={formData.requirements_cn}
-                  onChange={(value) => setFormData(prev => ({ ...prev, requirements_cn: value }))}
-                  placeholder="• 相关专业本科学历&#10;• 至少2年相关工作经验&#10;• 优秀的沟通能力"
-                  minRows={4}
-                  maxRows={10}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Multi-language Benefits */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Benefits (Optional)</h3>
-              <div className="space-y-4">
-                <BulletPointTextarea
-                  id="benefits_vn"
-                  label="Benefits (Vietnamese)"
-                  value={formData.benefits_vn}
-                  onChange={(value) => setFormData(prev => ({ ...prev, benefits_vn: value }))}
-                  placeholder="• Lương thưởng cạnh tranh&#10;• Bảo hiểm sức khỏe toàn diện&#10;• Nghỉ phép có lương&#10;• Đào tạo phát triển nghề nghiệp"
-                  minRows={3}
-                  maxRows={8}
-                />
-                <BulletPointTextarea
-                  id="benefits_en"
-                  label="Benefits (English)"
-                  value={formData.benefits_en}
-                  onChange={(value) => setFormData(prev => ({ ...prev, benefits_en: value }))}
-                  placeholder="• Competitive salary and bonuses&#10;• Comprehensive health insurance&#10;• Paid time off&#10;• Professional development opportunities"
-                  minRows={3}
-                  maxRows={8}
-                />
-                <BulletPointTextarea
-                  id="benefits_cn"
-                  label="Benefits (Chinese)"
-                  value={formData.benefits_cn}
-                  onChange={(value) => setFormData(prev => ({ ...prev, benefits_cn: value }))}
-                  placeholder="• 有竞争力的薪资和奖金&#10;• 全面的健康保险&#10;• 带薪休假&#10;• 职业发展机会"
-                  minRows={3}
-                  maxRows={8}
-                />
-              </div>
+              <BulletPointTextarea
+                id="benefits"
+                label="Quyền lợi (Tùy chọn)"
+                value={formData.benefits}
+                onChange={(value) => setFormData(prev => ({ ...prev, benefits: value }))}
+                placeholder="• Lương thưởng cạnh tranh theo năng lực&#10;• Bảo hiểm sức khỏe VinFast toàn diện&#10;• Nghỉ phép có lương, du lịch hàng năm&#10;• Đào tạo về sản phẩm xe điện VinFast&#10;• Cơ hội thăng tiến trong hệ thống VinFast"
+                minRows={3}
+                maxRows={8}
+              />
             </div>
 
             <div className="flex justify-end gap-2">

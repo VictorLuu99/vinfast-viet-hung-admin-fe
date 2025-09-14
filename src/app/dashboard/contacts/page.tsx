@@ -34,15 +34,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { 
-  apiClient, 
-  formatDate, 
-  getStatusBadgeVariant, 
-  getServiceTypeLabel, 
-  getPriorityLabel, 
-  getPriorityBadgeVariant, 
-  getLanguageLabel, 
-  getContactDisplayName 
+import {
+  apiClient,
+  formatDate,
+  getStatusBadgeVariant,
+  getServiceTypeLabel,
+  getPriorityLabel,
+  getPriorityBadgeVariant,
+  getContactDisplayName
 } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -299,11 +298,6 @@ export default function ContactsPage() {
                             {contact.email}
                           </div>
                         )}
-                        {contact.language && (
-                          <div className="text-xs text-muted-foreground">
-                            {getLanguageLabel(contact.language)}
-                          </div>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -421,18 +415,6 @@ export default function ContactsPage() {
                                       <div className="mt-1">
                                         <Badge variant={getPriorityBadgeVariant(selectedContact.priority)}>
                                           {getPriorityLabel(selectedContact.priority)}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  )}
-                                  {selectedContact.language && (
-                                    <div>
-                                      <Label className="text-sm font-medium">
-                                        Language
-                                      </Label>
-                                      <div className="mt-1">
-                                        <Badge variant="secondary">
-                                          {getLanguageLabel(selectedContact.language)}
                                         </Badge>
                                       </div>
                                     </div>

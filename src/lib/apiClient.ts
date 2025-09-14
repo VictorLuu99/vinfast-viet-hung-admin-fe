@@ -309,7 +309,7 @@ export class ApiClient {
 
   // VinFast Dashboard Stats methods (Vietnamese-only)
   async getStats() {
-    return this.request('/api/stats')
+    return this.request('/api/stats/admin')
   }
 
   async getHealthStats() {

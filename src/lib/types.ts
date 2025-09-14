@@ -33,43 +33,38 @@ export interface CVApplicationsResponse {
   pagination: PaginationData
 }
 
-// Contact Types
+// Contact Types (VinFast Vietnamese-only)
 export interface Contact {
   id: string
-  name?: string           // Legacy field for backward compatibility
-  full_name?: string      // New primary name field
-  email?: string          // Now optional
-  phone?: string          // New field
-  company?: string        // New field
-  subject?: string        // Now optional (auto-generated from service_type)
-  message?: string        // Now optional
-  service_type?: string   // New field
-  priority?: string       // New field
-  language?: string       // New field
+  name: string
+  email: string
+  phone?: string
+  company?: string
+  message: string
   status: 'new' | 'read' | 'replied' | 'closed'
   created_at: string
-  updated_at: string
+  updated_at?: string
 }
 
-// Job Types
+// Job Types (VinFast Vietnamese-only)
 export interface Job {
-  id: string
-  title_en?: string
-  title_cn?: string  
-  title_vn?: string
-  description_en?: string
-  description_cn?: string
-  description_vn?: string
-  requirements_en?: string
-  requirements_cn?: string
-  requirements_vn?: string
-  benefits_en?: string
-  benefits_cn?: string
-  benefits_vn?: string
+  id: number
+  title: string
+  description: string
+  requirements?: string
+  benefits?: string
   location: string
-  salary?: string
-  type: 'full-time' | 'part-time' | 'contract' | 'internship'
-  status: 'active' | 'inactive' | 'closed'
+  department: string
+  employment_type: 'full_time' | 'part_time' | 'contract' | 'internship'
+  experience_level: 'entry' | 'mid' | 'senior' | 'executive'
+  salary_min?: number
+  salary_max?: number
+  salary_currency?: string
+  status: 'active' | 'closed' | 'draft'
+  priority: number
+  application_deadline?: string
+  contact_email?: string
+  contact_phone?: string
   created_at: string
   updated_at: string
 }
@@ -93,7 +88,6 @@ export interface ContentImage {
   alt: string
   title: string
   tag: string
-  language: string
 }
 
 export interface ContentValidation {
@@ -112,33 +106,17 @@ export interface ContentPreview {
   sanitized_length: number
   images_count: number
   content_type: string
-  language: string
 }
 
-// News Article Types
+// News Article Types (VinFast Vietnamese-only)
 export interface NewsItem {
-  id: string
-  slug?: string
-  title_en?: string
-  title_cn?: string
-  title_vn?: string
-  content_en?: string
-  content_cn?: string
-  content_vn?: string
-  content_html_en?: string
-  content_html_cn?: string
-  content_html_vn?: string
-  content_type?: 'plain' | 'rich'
+  id: number
+  title: string
+  content: string
   excerpt?: string
   featured_image?: string
   category: string
   published: number
-  featured?: number
-  word_count?: number
-  reading_time?: number
-  images_metadata?: string
-  images?: ContentImage[]
-  revision_number?: number
   created_at: string
   updated_at: string
 }
@@ -148,36 +126,3 @@ export interface NewsResponse {
   pagination: PaginationData
 }
 
-// Knowledge Post Types
-export interface KnowledgePost {
-  id: string
-  slug?: string
-  title_en?: string
-  title_cn?: string
-  title_vn?: string
-  content_en?: string
-  content_cn?: string
-  content_vn?: string
-  content_html_en?: string
-  content_html_cn?: string
-  content_html_vn?: string
-  content_type?: 'plain' | 'rich'
-  excerpt?: string
-  featured_image?: string
-  category: string
-  status: 'active' | 'inactive' | 'draft'
-  featured?: number
-  display_order?: number
-  word_count?: number
-  reading_time?: number
-  images_metadata?: string
-  images?: ContentImage[]
-  revision_number?: number
-  created_at: string
-  updated_at: string
-}
-
-export interface KnowledgePostsResponse {
-  data: KnowledgePost[]
-  pagination: PaginationData
-}

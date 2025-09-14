@@ -96,17 +96,43 @@ export const getPriorityBadgeVariant = (priority?: string) => {
   }
 }
 
-// Language label mapping
-export const getLanguageLabel = (language?: string): string => {
-  switch (language) {
-    case 'vn':
-      return 'Tiếng Việt'
-    case 'cn':
-      return '中文'
-    case 'en':
-      return 'English'
+// VinFast VietHung specific helper functions
+export const getDepartmentLabel = (department?: string): string => {
+  if (!department) return 'Khác'
+
+  switch (department.toLowerCase()) {
+    case 'sales':
+    case 'ban_hang':
+      return 'Bán hàng'
+    case 'service':
+    case 'dich_vu':
+      return 'Dịch vụ khách hàng'
+    case 'technical':
+    case 'ky_thuat':
+      return 'Kỹ thuật'
+    case 'operations':
+    case 'van_hanh':
+      return 'Vận hành'
+    case 'management':
+    case 'quan_ly':
+      return 'Quản lý'
     default:
-      return 'Tiếng Việt'
+      return department
+  }
+}
+
+export const getEmploymentTypeLabel = (type?: string): string => {
+  switch (type) {
+    case 'full_time':
+      return 'Toàn thời gian'
+    case 'part_time':
+      return 'Bán thời gian'
+    case 'contract':
+      return 'Hợp đồng'
+    case 'internship':
+      return 'Thực tập'
+    default:
+      return 'Toàn thời gian'
   }
 }
 
