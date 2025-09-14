@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 
 // API Base URL from environment
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://huangshan-api.xox-labs-server.workers.dev'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://vinfast-viethung-api.xox-labs-server.workers.dev'
 
 // Types
 export interface User {

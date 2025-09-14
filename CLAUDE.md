@@ -133,7 +133,7 @@ npm run lint       # Check code quality with ESLint
 - Environment-specific configuration in `.env.local`
 
 **API Configuration:**
-- Production API: `https://huangshan-api.xox-labs-server.workers.dev`
+- Production API: `https://vinfast-viethung-api.xox-labs-server.workers.dev`
 - Local development: `http://localhost:8787` (when API runs locally)
 - Automatic fallback and error handling for API connectivity
 
