@@ -64,7 +64,6 @@ export function RichTextEditor({
   placeholder = 'Enter your content...',
   disabled = false,
   height = 400,
-  language = 'en',
   onAnalytics
 }: RichTextEditorProps) {
   const editorRef = useRef<TinyMCEEditor | null>(null)
@@ -173,8 +172,7 @@ export function RichTextEditor({
     try {
       const response = (await apiClient.previewContent({
         content_html: value,
-        content_type: 'rich',
-        language
+        content_type: 'rich'
       })) as ApiResponse<PreviewData>
 
       if (response.success) {
@@ -339,7 +337,7 @@ export function RichTextEditor({
             <span>{analytics.readingTime}m read</span>
           </div>
           <div className="flex items-center gap-1">
-            <Image className="w-4 h-4" />
+            <Image className="w-4 h-4" aria-label="Images icon" />
             <span>{analytics.imageCount} images</span>
           </div>
           <div className="flex items-center gap-1">

@@ -228,7 +228,6 @@ export default function JobsPage() {
   const getStatusStats = () => {
     return {
       total: jobs.length,
-      published: jobs.filter(j => j.status === 'published').length,
       active: jobs.filter(j => j.status === 'active').length,
       draft: jobs.filter(j => j.status === 'draft').length,
       closed: jobs.filter(j => j.status === 'closed').length
@@ -266,11 +265,11 @@ export default function JobsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
             <div className="h-4 w-4 rounded-full bg-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.published}</div>
+            <div className="text-2xl font-bold">{stats.active}</div>
           </CardContent>
         </Card>
         <Card>
@@ -329,7 +328,6 @@ export default function JobsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="published">Published</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="draft">Draft</SelectItem>
                   <SelectItem value="closed">Closed</SelectItem>
@@ -511,13 +509,13 @@ export default function JobsPage() {
               </div>
               <div>
                 <Label htmlFor="employment_type">Employment Type</Label>
-                <Select value={formData.employment_type} onValueChange={(value: 'full-time' | 'part-time' | 'contract' | 'internship') => setFormData(prev => ({ ...prev, employment_type: value }))}>
+                <Select value={formData.employment_type} onValueChange={(value: 'full_time' | 'part_time' | 'contract' | 'internship') => setFormData(prev => ({ ...prev, employment_type: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent position="popper">
-                    <SelectItem value="full-time">Full Time</SelectItem>
-                    <SelectItem value="part-time">Part Time</SelectItem>
+                    <SelectItem value="full_time">Full Time</SelectItem>
+                    <SelectItem value="part_time">Part Time</SelectItem>
                     <SelectItem value="contract">Contract</SelectItem>
                     <SelectItem value="internship">Internship</SelectItem>
                   </SelectContent>
@@ -544,20 +542,19 @@ export default function JobsPage() {
                 <Label htmlFor="salary_range">Salary Range</Label>
                 <Input
                   id="salary_range"
-                  value={formData.salary_range || formData.salary_min}
-                  onChange={(e) => setFormData(prev => ({ ...prev, salary_range: e.target.value }))}
+                  value={formData.salary_min}
+                  onChange={(e) => setFormData(prev => ({ ...prev, salary_min: parseInt(e.target.value) || 0 }))}
                   placeholder="$50,000 - $70,000"
                 />
               </div>
               <div>
                 <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(value: 'active' | 'published' | 'closed') => setFormData(prev => ({ ...prev, status: value }))}>
+                <Select value={formData.status} onValueChange={(value: 'active' | 'draft' | 'closed') => setFormData(prev => ({ ...prev, status: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent position="popper">
                     <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="published">Published</SelectItem>
                     <SelectItem value="closed">Closed</SelectItem>
                   </SelectContent>
                 </Select>
@@ -567,8 +564,8 @@ export default function JobsPage() {
                 <Input
                   id="expires_at"
                   type="date"
-                  value={formData.expires_at}
-                  onChange={(e) => setFormData(prev => ({ ...prev, expires_at: e.target.value }))}
+                  value={formData.application_deadline}
+                  onChange={(e) => setFormData(prev => ({ ...prev, application_deadline: e.target.value }))}
                 />
               </div>
             </div>

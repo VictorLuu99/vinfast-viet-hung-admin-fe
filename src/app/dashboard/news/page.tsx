@@ -31,12 +31,9 @@ import {
   Search,
   Edit,
   Trash2,
-  Eye,
   Calendar,
   Tag,
-  Image,
   Save,
-  X
 } from 'lucide-react'
 
 interface NewsArticle {

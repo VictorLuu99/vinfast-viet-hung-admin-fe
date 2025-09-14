@@ -11,13 +11,11 @@ import {
   TrendingUp,
   Clock,
   CheckCircle,
-  AlertCircle,
   Car,
   Zap
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import { apiClient } from '@/lib/apiClient'
 
 interface DashboardStats {
   news: { total: number; published: number; draft: number }
@@ -274,7 +272,7 @@ export default function VinFastDashboardPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-gray-600">Đã xuất bản tin tức: "VinFast VF 8 ra mắt tại VietHung"</span>
+              <span className="text-gray-600">Đã xuất bản tin tức: &quot;VinFast VF 8 ra mắt tại VietHung&quot;</span>
               <span className="text-gray-400 ml-auto">2 giờ trước</span>
             </div>
             <div className="flex items-center gap-3 text-sm">
@@ -284,7 +282,7 @@ export default function VinFastDashboardPage() {
             </div>
             <div className="flex items-center gap-3 text-sm">
               <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-              <span className="text-gray-600">Cập nhật vị trí tuyển dụng: "Nhân viên tư vấn bán hàng"</span>
+              <span className="text-gray-600">Cập nhật vị trí tuyển dụng: &quot;Nhân viên tư vấn bán hàng&quot;</span>
               <span className="text-gray-400 ml-auto">1 ngày trước</span>
             </div>
             <div className="flex items-center gap-3 text-sm">

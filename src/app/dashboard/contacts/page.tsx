@@ -38,9 +38,6 @@ import {
   apiClient,
   formatDate,
   getStatusBadgeVariant,
-  getServiceTypeLabel,
-  getPriorityLabel,
-  getPriorityBadgeVariant,
   getContactDisplayName
 } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -74,7 +71,6 @@ export default function ContactsPage() {
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
-  const [serviceTypeFilter, setServiceTypeFilter] = React.useState<string>("all");
   const [selectedContact, setSelectedContact] = React.useState<Contact | null>(
     null
   );
@@ -135,16 +131,12 @@ export default function ContactsPage() {
       (contact.email && contact.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (contact.phone && contact.phone.includes(searchQuery)) ||
       (contact.company && contact.company.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (contact.subject && contact.subject.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (contact.service_type && getServiceTypeLabel(contact.service_type).toLowerCase().includes(searchQuery.toLowerCase()));
+      (contact.message && contact.message.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesStatus =
       statusFilter === "all" || contact.status === statusFilter;
     
-    const matchesServiceType =
-      serviceTypeFilter === "all" || contact.service_type === serviceTypeFilter;
-    
-    return matchesSearch && matchesStatus && matchesServiceType;
+    return matchesSearch && matchesStatus;
   });
 
   const getStatusStats = () => {
@@ -245,18 +237,6 @@ export default function ContactsPage() {
                   <SelectItem value="closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={serviceTypeFilter} onValueChange={setServiceTypeFilter}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="All Services" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Services</SelectItem>
-                  <SelectItem value="official_unofficial_transport">Official & Unofficial Transport</SelectItem>
-                  <SelectItem value="ecommerce_shipping">E-commerce Shipping</SelectItem>
-                  <SelectItem value="import_machinery">Import Machinery</SelectItem>
-                  <SelectItem value="order_taobao_1688">Order Taobao/1688</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 
@@ -273,8 +253,6 @@ export default function ContactsPage() {
                 <TableRow>
                   <TableHead>Contact Info</TableHead>
                   <TableHead>Company</TableHead>
-                  <TableHead>Service Type</TableHead>
-                  <TableHead>Priority</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -308,20 +286,6 @@ export default function ContactsPage() {
                         </div>
                       ) : (
                         <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-[180px]">
-                        <Badge variant="outline" className="text-xs">
-                          {getServiceTypeLabel(contact.service_type)}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {contact.priority && (
-                        <Badge variant={getPriorityBadgeVariant(contact.priority)} className="text-xs">
-                          {getPriorityLabel(contact.priority)}
-                        </Badge>
                       )}
                     </TableCell>
                     <TableCell>
@@ -397,39 +361,7 @@ export default function ContactsPage() {
                                       </div>
                                     </div>
                                   )}
-                                  <div>
-                                    <Label className="text-sm font-medium">
-                                      Service Type
-                                    </Label>
-                                    <div className="mt-1">
-                                      <Badge variant="outline">
-                                        {getServiceTypeLabel(selectedContact.service_type)}
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                  {selectedContact.priority && (
-                                    <div>
-                                      <Label className="text-sm font-medium">
-                                        Priority
-                                      </Label>
-                                      <div className="mt-1">
-                                        <Badge variant={getPriorityBadgeVariant(selectedContact.priority)}>
-                                          {getPriorityLabel(selectedContact.priority)}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
-                                {selectedContact.subject && (
-                                  <div>
-                                    <Label className="text-sm font-medium">
-                                      Subject
-                                    </Label>
-                                    <div className="mt-1 p-3 bg-muted rounded-md">
-                                      {selectedContact.subject}
-                                    </div>
-                                  </div>
-                                )}
                                 {selectedContact.message && (
                                   <div>
                                     <Label className="text-sm font-medium">
@@ -487,7 +419,8 @@ export default function ContactsPage() {
                                 <div className="text-sm text-muted-foreground">
                                   Submitted:{" "}
                                   {formatDate(selectedContact.created_at)}
-                                  {selectedContact.updated_at !==
+                                  {selectedContact.updated_at &&
+                                    selectedContact.updated_at !==
                                     selectedContact.created_at && (
                                     <>
                                       {" "}

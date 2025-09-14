@@ -371,6 +371,17 @@ export class ApiClient {
     }
   }
 
+    // Content preview methods
+    async previewContent(data: {
+      content_html: string;
+      content_type: string;
+    }) {
+      return this.request('/api/preview/content', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      })
+    }
+
   private async handleUnauthorizedFileUpload(file: File) {
     if (!this.dispatch || !this.getState) {
       throw new Error('Unauthorized: Redux store not initialized')

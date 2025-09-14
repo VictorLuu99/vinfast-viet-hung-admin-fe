@@ -20,7 +20,6 @@ import {
   Menu,
   X,
   LayoutDashboard,
-  Loader2,
   Zap
 } from 'lucide-react'
 
