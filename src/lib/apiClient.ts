@@ -8,7 +8,7 @@ import { selectToken, refreshTokenAsync, forceLogout, updateActivity } from '@/s
  */
 
 // VinFast API Configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787'
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://vinfast-viethung-api.xox-labs-server.workers.dev'
 
 // Navigation helper for 401 redirects
 const redirectToLogin = () => {
