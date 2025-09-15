@@ -22,6 +22,20 @@ export const Toast: React.FC<ToastProps> = ({
   type = 'info',
   onClose
 }) => {
+  const [isVisible, setIsVisible] = React.useState(false)
+  const [isLeaving, setIsLeaving] = React.useState(false)
+
+  React.useEffect(() => {
+    // Entrance animation
+    const timer = setTimeout(() => setIsVisible(true), 50)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const handleClose = () => {
+    setIsLeaving(true)
+    setTimeout(() => onClose(), 300)
+  }
+
   const icons = {
     success: CheckCircle,
     error: AlertCircle,
@@ -32,34 +46,54 @@ export const Toast: React.FC<ToastProps> = ({
   const Icon = icons[type]
 
   const toastClasses = cn(
-    'group pointer-events-auto relative flex w-full items-center justify-between space-x-2 overflow-hidden rounded-md border p-4 pr-6 shadow-lg transition-all',
+    'group pointer-events-auto relative flex w-full items-center justify-between space-x-2 overflow-hidden rounded-xl border backdrop-blur-sm p-4 pr-6 shadow-xl transition-all duration-300 ease-out transform',
     {
-      'border-green-200 bg-green-50 text-green-900': type === 'success',
-      'border-red-200 bg-red-50 text-red-900': type === 'error', 
-      'border-yellow-200 bg-yellow-50 text-yellow-900': type === 'warning',
-      'border-blue-200 bg-blue-50 text-blue-900': type === 'info'
-    }
+      'border-green-200/50 bg-green-50/90 text-green-900 shadow-green-100': type === 'success',
+      'border-red-200/50 bg-red-50/90 text-red-900 shadow-red-100': type === 'error',
+      'border-yellow-200/50 bg-yellow-50/90 text-yellow-900 shadow-yellow-100': type === 'warning',
+      'border-blue-200/50 bg-blue-50/90 text-blue-900 shadow-blue-100': type === 'info'
+    },
+    isVisible && !isLeaving
+      ? 'translate-x-0 opacity-100 scale-100'
+      : 'translate-x-full opacity-0 scale-95',
+    isLeaving && '-translate-x-full opacity-0 scale-95'
   )
 
-  const iconClasses = cn('h-5 w-5 shrink-0', {
+  const iconClasses = cn('h-5 w-5 shrink-0 drop-shadow-sm', {
     'text-green-600': type === 'success',
     'text-red-600': type === 'error',
-    'text-yellow-600': type === 'warning', 
+    'text-yellow-600': type === 'warning',
     'text-blue-600': type === 'info'
   })
 
   return (
     <div className={toastClasses}>
-      <div className="flex items-start space-x-3">
-        <Icon className={iconClasses} />
-        <div className="grid gap-1">
-          {title && <div className="text-sm font-semibold">{title}</div>}
-          {description && <div className="text-sm opacity-90">{description}</div>}
+      {/* Accent line */}
+      <div className={cn('absolute left-0 top-0 bottom-0 w-1 rounded-l-xl', {
+        'bg-gradient-to-b from-green-400 to-green-600': type === 'success',
+        'bg-gradient-to-b from-red-400 to-red-600': type === 'error',
+        'bg-gradient-to-b from-yellow-400 to-yellow-600': type === 'warning',
+        'bg-gradient-to-b from-blue-400 to-blue-600': type === 'info'
+      })} />
+
+      <div className="flex items-start space-x-3 pl-1">
+        <div className={cn('p-1 rounded-full', {
+          'bg-green-100': type === 'success',
+          'bg-red-100': type === 'error',
+          'bg-yellow-100': type === 'warning',
+          'bg-blue-100': type === 'info'
+        })}>
+          <Icon className={iconClasses} />
+        </div>
+        <div className="grid gap-1 flex-1">
+          {title && <div className="text-sm font-semibold leading-tight">{title}</div>}
+          {description && <div className="text-sm opacity-90 leading-relaxed">{description}</div>}
         </div>
       </div>
+
       <button
-        onClick={onClose}
-        className="absolute right-1 top-1 rounded-md p-1 text-current opacity-50 hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-1 group-hover:opacity-100"
+        onClick={handleClose}
+        className="absolute right-2 top-2 rounded-full p-1.5 text-current opacity-40 hover:opacity-100 hover:bg-black/10 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-current/20 transition-all duration-200 group-hover:opacity-70"
       >
         <X className="h-4 w-4" />
       </button>
@@ -111,17 +145,52 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
       {children}
       
       {/* Toast Container */}
-      <div className="fixed top-4 right-4 z-50 flex flex-col space-y-2 w-full max-w-sm">
-        {toasts.map((toast) => (
-          <Toast
+      <div className="fixed top-4 right-4 z-50 flex flex-col space-y-3 w-full max-w-sm pointer-events-none">
+        {toasts.map((toast, index) => (
+          <div
             key={toast.id}
-            title={toast.title}
-            description={toast.description}
-            type={toast.type}
-            onClose={() => removeToast(toast.id)}
-          />
+            className="pointer-events-auto"
+            style={{
+              transform: `translateY(${index * -2}px) scale(${1 - index * 0.02})`,
+              zIndex: 1000 - index
+            }}
+          >
+            <Toast
+              title={toast.title}
+              description={toast.description}
+              type={toast.type}
+              onClose={() => removeToast(toast.id)}
+            />
+          </div>
         ))}
       </div>
     </ToastContext.Provider>
   )
+}
+
+// Helper functions for easy toast usage
+export const toast = {
+  success: (title: string, description?: string) => ({
+    type: 'success' as const,
+    title,
+    description,
+  }),
+
+  error: (title: string, description?: string) => ({
+    type: 'error' as const,
+    title,
+    description,
+  }),
+
+  warning: (title: string, description?: string) => ({
+    type: 'warning' as const,
+    title,
+    description,
+  }),
+
+  info: (title: string, description?: string) => ({
+    type: 'info' as const,
+    title,
+    description,
+  }),
 }

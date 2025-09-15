@@ -42,6 +42,8 @@ import {
 } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { useToast, toast } from '@/components/ui/toast';
+import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog';
 import {
   Search,
   Mail,
@@ -60,6 +62,8 @@ import { Contact } from "@/lib/types";
 export default function ContactsPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { showToast } = useToast();
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
 
   React.useEffect(() => {
     if (!user) {
@@ -90,10 +94,11 @@ export default function ContactsPage() {
       setTotalPages(responseData.pagination?.pages || 1);
     } catch (error) {
       console.error("Failed to fetch contacts:", error);
+      showToast(toast.error('Error Loading Data', 'Failed to load contacts. Please try again.'));
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, showToast]);
 
   React.useEffect(() => {
     fetchContacts();
@@ -103,25 +108,34 @@ export default function ContactsPage() {
     try {
       const response = await apiClient.updateContact(id, { status });
       if (response.success) {
+        showToast(toast.success('Status Updated', `Contact status changed to ${status}`));
         await fetchContacts();
         setSelectedContact(null);
+      } else {
+        showToast(toast.error('Update Failed', 'Failed to update contact status'));
       }
     } catch (error) {
       console.error("Failed to update contact:", error);
+      showToast(toast.error('System Error', 'An error occurred while updating contact status'));
     }
   };
 
-  const deleteContact = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this contact?")) return;
-
-    try {
-      const response = await apiClient.deleteContact(id);
-      if (response.success) {
-        await fetchContacts();
+  const deleteContact = (contact: Contact) => {
+    const contactName = getContactDisplayName(contact);
+    showConfirmation(confirmations.delete(contactName, async () => {
+      try {
+        const response = await apiClient.deleteContact(contact.id);
+        if (response.success) {
+          showToast(toast.success('Contact Deleted', 'Contact has been successfully removed'));
+          await fetchContacts();
+        } else {
+          showToast(toast.error('Delete Failed', 'Failed to delete contact'));
+        }
+      } catch (error) {
+        console.error("Failed to delete contact:", error);
+        showToast(toast.error('System Error', 'An error occurred while deleting contact'));
       }
-    } catch (error) {
-      console.error("Failed to delete contact:", error);
-    }
+    }));
   };
 
   const filteredContacts = contacts.filter((contact) => {
@@ -436,7 +450,7 @@ export default function ContactsPage() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => deleteContact(contact.id)}
+                          onClick={() => deleteContact(contact)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -476,6 +490,9 @@ export default function ContactsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Beautiful Confirmation Dialog */}
+      <ConfirmationDialog />
     </div>
   );
 }

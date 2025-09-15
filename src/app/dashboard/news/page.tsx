@@ -36,6 +36,8 @@ import {
   Save,
 } from 'lucide-react'
 import { apiClient } from '@/lib/utils'
+import { useToast, toast } from '@/components/ui/toast'
+import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
 
 interface NewsArticle {
   id: number
@@ -66,6 +68,8 @@ export default function VinFastNewsPage() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [editingArticle, setEditingArticle] = React.useState<NewsArticle | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const { showToast } = useToast()
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog()
 
   // Form state
   const [formData, setFormData] = React.useState({
@@ -91,15 +95,19 @@ export default function VinFastNewsPage() {
       if (response.success) {
         setArticles(response.data as NewsArticle[] || [])
       } else {
-        setError('Không thể tải danh sách tin tức')
+        const errorMsg = 'Không thể tải danh sách tin tức'
+        setError(errorMsg)
+        showToast(toast.error('Lỗi tải dữ liệu', errorMsg))
       }
     } catch (error) {
       console.error('Error fetching news:', error)
-      setError('Có lỗi xảy ra khi tải tin tức')
+      const errorMsg = 'Có lỗi xảy ra khi tải tin tức'
+      setError(errorMsg)
+      showToast(toast.error('Lỗi hệ thống', errorMsg))
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [showToast])
 
   React.useEffect(() => {
     fetchArticles()
@@ -117,6 +125,7 @@ export default function VinFastNewsPage() {
         const response = await apiClient.updateNews(editingArticle.id.toString(), formData)
 
         if (response.success) {
+          showToast(toast.success('Cập nhật thành công', 'Tin tức đã được cập nhật'))
           await fetchArticles() // Refresh the list
           setIsDialogOpen(false)
           setEditingArticle(null)
@@ -129,13 +138,16 @@ export default function VinFastNewsPage() {
             published: 0
           })
         } else {
-          setError('Không thể cập nhật tin tức')
+          const errorMsg = 'Không thể cập nhật tin tức'
+          setError(errorMsg)
+          showToast(toast.error('Lỗi cập nhật', errorMsg))
         }
       } else {
         // Create new article
         const response = await apiClient.createNews(formData)
 
         if (response.success) {
+          showToast(toast.success('Tạo thành công', 'Tin tức mới đã được tạo'))
           await fetchArticles() // Refresh the list
           setIsDialogOpen(false)
           setFormData({
@@ -147,12 +159,16 @@ export default function VinFastNewsPage() {
             published: 0
           })
         } else {
-          setError('Không thể tạo tin tức')
+          const errorMsg = 'Không thể tạo tin tức'
+          setError(errorMsg)
+          showToast(toast.error('Lỗi tạo mới', errorMsg))
         }
       }
     } catch (error) {
       console.error('Error submitting news:', error)
-      setError('Có lỗi xảy ra khi lưu tin tức')
+      const errorMsg = 'Có lỗi xảy ra khi lưu tin tức'
+      setError(errorMsg)
+      showToast(toast.error('Lỗi hệ thống', errorMsg))
     } finally {
       setIsSubmitting(false)
     }
@@ -171,22 +187,27 @@ export default function VinFastNewsPage() {
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Bạn có chắc muốn xóa bài viết này?')) {
+  const handleDelete = (article: NewsArticle) => {
+    showConfirmation(confirmations.delete(article.title, async () => {
       try {
         setError(null)
-        const response = await apiClient.deleteNews(id.toString())
+        const response = await apiClient.deleteNews(article.id.toString())
 
         if (response.success) {
+          showToast(toast.success('Xóa thành công', 'Tin tức đã được xóa'))
           await fetchArticles() // Refresh the list
         } else {
-          setError('Không thể xóa tin tức')
+          const errorMsg = 'Không thể xóa tin tức'
+          setError(errorMsg)
+          showToast(toast.error('Lỗi xóa', errorMsg))
         }
       } catch (error) {
         console.error('Error deleting news:', error)
-        setError('Có lỗi xảy ra khi xóa tin tức')
+        const errorMsg = 'Có lỗi xảy ra khi xóa tin tức'
+        setError(errorMsg)
+        showToast(toast.error('Lỗi hệ thống', errorMsg))
       }
-    }
+    }))
   }
 
   const filteredArticles = articles.filter(article => {
@@ -474,7 +495,7 @@ export default function VinFastNewsPage() {
                           <Button size="sm" variant="outline" onClick={() => handleEdit(article)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleDelete(article.id)}>
+                          <Button size="sm" variant="outline" onClick={() => handleDelete(article)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -499,6 +520,9 @@ export default function VinFastNewsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Beautiful Confirmation Dialog */}
+      <ConfirmationDialog />
     </div>
   )
 }

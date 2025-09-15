@@ -14,7 +14,8 @@ import { apiClient, formatDate, getStatusBadgeVariant } from '@/lib/utils'
 import { Search, Plus, Edit, Trash2, Briefcase, MapPin, Clock, Calendar, Filter } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/components/ui/toast'
+import { useToast, toast } from '@/components/ui/toast'
+import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
 
 // VinFast Vietnamese-only job interface
 interface Job {
@@ -43,6 +44,7 @@ export default function JobsPage() {
   const { user } = useAuth()
   const router = useRouter()
   const { showToast } = useToast()
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog()
   
   React.useEffect(() => {
     if (!user) {
@@ -89,11 +91,7 @@ export default function JobsPage() {
       setTotalPages(responseData?.pagination?.totalPages ?? 1)
     } catch (error) {
       console.error('Failed to fetch jobs:', error)
-      showToast({
-        type: 'error',
-        title: 'Failed to Load Jobs',
-        description: 'An error occurred while loading job postings. Please refresh the page.'
-      })
+      showToast(toast.error('Failed to Load Jobs', 'An error occurred while loading job postings. Please refresh the page.'))
     } finally {
       setLoading(false)
     }
@@ -114,43 +112,30 @@ export default function JobsPage() {
         setSelectedJob(null)
         setIsEditing(false)
         resetForm()
-        showToast({
-          type: 'success',
-          title: selectedJob ? 'Job Updated Successfully' : 'Job Created Successfully',
-          description: selectedJob ? 'The job posting has been updated.' : 'A new job posting has been created.'
-        })
+        showToast(toast.success(
+          selectedJob ? 'Job Updated Successfully' : 'Job Created Successfully',
+          selectedJob ? 'The job posting has been updated.' : 'A new job posting has been created.'
+        ))
       }
     } catch (error) {
       console.error('Failed to save job:', error)
-      showToast({
-        type: 'error',
-        title: 'Failed to Save Job',
-        description: 'An error occurred while saving the job posting. Please try again.'
-      })
+      showToast(toast.error('Failed to Save Job', 'An error occurred while saving the job posting. Please try again.'))
     }
   }
 
-  const deleteJob = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this job posting?')) return
-
-    try {
-      const response = await apiClient.deleteJob(id.toString())
-      if (response) {
-        await fetchJobs()
-        showToast({
-          type: 'success',
-          title: 'Job Deleted Successfully',
-          description: 'The job posting has been removed.'
-        })
+  const deleteJob = (job: Job) => {
+    showConfirmation(confirmations.delete(job.title, async () => {
+      try {
+        const response = await apiClient.deleteJob(job.id.toString())
+        if (response) {
+          await fetchJobs()
+          showToast(toast.success('Job Deleted Successfully', 'The job posting has been removed.'))
+        }
+      } catch (error) {
+        console.error('Failed to delete job:', error)
+        showToast(toast.error('Failed to Delete Job', 'An error occurred while deleting the job posting. Please try again.'))
       }
-    } catch (error) {
-      console.error('Failed to delete job:', error)
-      showToast({
-        type: 'error',
-        title: 'Failed to Delete Job',
-        description: 'An error occurred while deleting the job posting. Please try again.'
-      })
-    }
+    }))
   }
 
   const resetForm = () => {
@@ -419,7 +404,7 @@ export default function JobsPage() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => deleteJob(job.id)}
+                          onClick={() => deleteJob(job)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -637,6 +622,9 @@ export default function JobsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Beautiful Confirmation Dialog */}
+      <ConfirmationDialog />
     </div>
   )
 }

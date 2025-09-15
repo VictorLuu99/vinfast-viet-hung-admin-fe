@@ -38,6 +38,8 @@ import { Label } from "@/components/ui/label";
 import { apiClient, formatDate, getStatusBadgeVariant } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { useToast, toast } from '@/components/ui/toast';
+import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog';
 import {
   Search,
   FileText,
@@ -82,6 +84,8 @@ interface CVApplication {
 export default function CandidatesPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { showToast } = useToast();
+  const { showConfirmation, ConfirmationDialog } = useConfirmationDialog();
 
   React.useEffect(() => {
     if (!user) {
@@ -119,10 +123,11 @@ export default function CandidatesPage() {
       }
     } catch (error) {
       console.error("Failed to fetch CV applications:", error);
+      showToast(toast.error('Error Loading Data', 'Failed to load CV applications. Please try again.'));
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, showToast]);
 
   React.useEffect(() => {
     fetchApplications();
@@ -141,25 +146,34 @@ export default function CandidatesPage() {
 
       const response = await apiClient.updateCVApplication(id, updateData);
       if (response.success) {
+        showToast(toast.success('Application Updated', 'Candidate status has been updated successfully'));
         await fetchApplications();
         setSelectedApplication(null);
+      } else {
+        showToast(toast.error('Update Failed', 'Failed to update candidate status'));
       }
     } catch (error) {
       console.error("Failed to update application:", error);
+      showToast(toast.error('System Error', 'An error occurred while updating candidate status'));
     }
   };
 
-  const deleteApplication = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this application?")) return;
-
-    try {
-      const response = await apiClient.deleteCVApplication(id);
-      if (response.success) {
-        await fetchApplications();
+  const deleteApplication = (application: CVApplication) => {
+    const candidateName = `${application.first_name} ${application.last_name}`;
+    showConfirmation(confirmations.delete(candidateName, async () => {
+      try {
+        const response = await apiClient.deleteCVApplication(application.id);
+        if (response.success) {
+          showToast(toast.success('Application Deleted', 'Candidate application has been removed'));
+          await fetchApplications();
+        } else {
+          showToast(toast.error('Delete Failed', 'Failed to delete candidate application'));
+        }
+      } catch (error) {
+        console.error("Failed to delete application:", error);
+        showToast(toast.error('System Error', 'An error occurred while deleting candidate application'));
       }
-    } catch (error) {
-      console.error("Failed to delete application:", error);
-    }
+    }));
   };
 
   const filteredApplications = applications.filter((app) => {
@@ -426,7 +440,7 @@ export default function CandidatesPage() {
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => deleteApplication(application.id)}
+                          onClick={() => deleteApplication(application)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -466,6 +480,9 @@ export default function CandidatesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Beautiful Confirmation Dialog */}
+      <ConfirmationDialog />
     </div>
   );
 }
