@@ -35,6 +35,7 @@ import {
   Tag,
   Save,
 } from 'lucide-react'
+import { apiClient } from '@/lib/utils'
 
 interface NewsArticle {
   id: number
@@ -59,10 +60,12 @@ const vietnameseCategories = [
 export default function VinFastNewsPage() {
   const [articles, setArticles] = React.useState<NewsArticle[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const [searchTerm, setSearchTerm] = React.useState('')
   const [selectedCategory, setSelectedCategory] = React.useState<string>('all')
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [editingArticle, setEditingArticle] = React.useState<NewsArticle | null>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   // Form state
   const [formData, setFormData] = React.useState({
@@ -74,76 +77,85 @@ export default function VinFastNewsPage() {
     published: 0
   })
 
-  // Mock data - in real app would fetch from API
-  React.useEffect(() => {
-    const mockArticles: NewsArticle[] = [
-      {
-        id: 1,
-        title: 'Chào mừng đến với VinFast VietHung',
-        content: 'VinFast VietHung tự hào là đại lý chính thức của VinFast tại khu vực...',
-        excerpt: 'Giới thiệu về VinFast VietHung - đại lý chính thức VinFast',
-        category: 'tin-cong-ty',
-        published: 1,
-        created_at: '2025-01-14T08:00:00Z',
-        updated_at: '2025-01-14T08:00:00Z'
-      },
-      {
-        id: 2,
-        title: 'Ra mắt VinFast VF 8 - SUV điện thông minh',
-        content: 'VinFast VF 8 là mẫu SUV điện 5 chỗ với thiết kế hiện đại...',
-        excerpt: 'VinFast VF 8 - Công nghệ tiên tiến, trải nghiệm vượt trội',
-        category: 'san-pham-dich-vu',
-        published: 1,
-        created_at: '2025-01-14T09:00:00Z',
-        updated_at: '2025-01-14T09:00:00Z'
-      },
-      {
-        id: 3,
-        title: 'Chương trình khuyến mại tháng 1/2025',
-        content: 'VinFast VietHung triển khai chương trình khuyến mại hấp dẫn...',
-        excerpt: 'Ưu đãi đặc biệt cho khách hàng VinFast trong tháng 1',
-        category: 'khuyen-mai',
-        published: 0,
-        created_at: '2025-01-14T10:00:00Z',
-        updated_at: '2025-01-14T10:00:00Z'
-      }
-    ]
+  // Fetch articles from API
+  const fetchArticles = React.useCallback(async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
 
-    setTimeout(() => {
-      setArticles(mockArticles)
+      const response = await apiClient.getNews({
+        page: 1,
+        limit: 100  // Get all articles for admin view
+      })
+
+      if (response.success) {
+        setArticles(response.data as NewsArticle[] || [])
+      } else {
+        setError('Không thể tải danh sách tin tức')
+      }
+    } catch (error) {
+      console.error('Error fetching news:', error)
+      setError('Có lỗi xảy ra khi tải tin tức')
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }, [])
+
+  React.useEffect(() => {
+    fetchArticles()
+  }, [fetchArticles])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // In real app, would call API
-    const newArticle: NewsArticle = {
-      id: Date.now(),
-      ...formData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
+    try {
+      setIsSubmitting(true)
+      setError(null)
 
-    if (editingArticle) {
-      setArticles(articles.map(article =>
-        article.id === editingArticle.id ? { ...newArticle, id: editingArticle.id } : article
-      ))
-    } else {
-      setArticles([newArticle, ...articles])
-    }
+      if (editingArticle) {
+        // Update existing article
+        const response = await apiClient.updateNews(editingArticle.id.toString(), formData)
 
-    setIsDialogOpen(false)
-    setEditingArticle(null)
-    setFormData({
-      title: '',
-      content: '',
-      excerpt: '',
-      featured_image: '',
-      category: 'tin-cong-ty',
-      published: 0
-    })
+        if (response.success) {
+          await fetchArticles() // Refresh the list
+          setIsDialogOpen(false)
+          setEditingArticle(null)
+          setFormData({
+            title: '',
+            content: '',
+            excerpt: '',
+            featured_image: '',
+            category: 'tin-cong-ty',
+            published: 0
+          })
+        } else {
+          setError('Không thể cập nhật tin tức')
+        }
+      } else {
+        // Create new article
+        const response = await apiClient.createNews(formData)
+
+        if (response.success) {
+          await fetchArticles() // Refresh the list
+          setIsDialogOpen(false)
+          setFormData({
+            title: '',
+            content: '',
+            excerpt: '',
+            featured_image: '',
+            category: 'tin-cong-ty',
+            published: 0
+          })
+        } else {
+          setError('Không thể tạo tin tức')
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting news:', error)
+      setError('Có lỗi xảy ra khi lưu tin tức')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleEdit = (article: NewsArticle) => {
@@ -161,7 +173,19 @@ export default function VinFastNewsPage() {
 
   const handleDelete = async (id: number) => {
     if (confirm('Bạn có chắc muốn xóa bài viết này?')) {
-      setArticles(articles.filter(article => article.id !== id))
+      try {
+        setError(null)
+        const response = await apiClient.deleteNews(id.toString())
+
+        if (response.success) {
+          await fetchArticles() // Refresh the list
+        } else {
+          setError('Không thể xóa tin tức')
+        }
+      } catch (error) {
+        console.error('Error deleting news:', error)
+        setError('Có lỗi xảy ra khi xóa tin tức')
+      }
     }
   }
 
@@ -292,9 +316,22 @@ export default function VinFastNewsPage() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Hủy
                 </Button>
-                <Button type="submit" className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
-                  <Save className="h-4 w-4 mr-2" />
-                  {editingArticle ? 'Cập nhật' : 'Tạo mới'}
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      {editingArticle ? 'Đang cập nhật...' : 'Đang tạo...'}
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      {editingArticle ? 'Cập nhật' : 'Tạo mới'}
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -348,6 +385,34 @@ export default function VinFastNewsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+                <div className="ml-auto pl-3">
+                  <div className="-mx-1.5 -my-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setError(null)}
+                      className="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100"
+                    >
+                      <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
