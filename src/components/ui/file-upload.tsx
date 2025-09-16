@@ -5,6 +5,7 @@ import { Upload, X, Image, AlertCircle } from 'lucide-react'
 import { Button } from './button'
 import { Progress } from './progress'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
 
 interface FileUploadProps {
   value?: string
@@ -32,6 +33,9 @@ export function FileUpload({
   const [dragActive, setDragActive] = React.useState(false)
   const [previewUrl, setPreviewUrl] = React.useState<string>(value || '')
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  // Get auth token from Redux store
+  const { token } = useAuth()
 
   React.useEffect(() => {
     setPreviewUrl(value || '')
@@ -64,8 +68,7 @@ export function FileUpload({
       formData.append('alt_text', file.name)
       formData.append('caption', '')
 
-      // Get auth token
-      const token = localStorage.getItem('authToken')
+      // Check if user is authenticated and has token
       if (!token) {
         throw new Error('Không tìm thấy token xác thực')
       }

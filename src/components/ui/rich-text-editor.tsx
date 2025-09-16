@@ -67,7 +67,7 @@ export function RichTextEditor({
   onAnalytics
 }: RichTextEditorProps) {
   const editorRef = useRef<TinyMCEEditor | null>(null)
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const { showToast } = useToast()
   const [isUploading, setIsUploading] = React.useState(false)
   const [analytics, setAnalytics] = React.useState<ContentAnalytics>({
@@ -123,7 +123,7 @@ export function RichTextEditor({
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/editor`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: formData
       })
