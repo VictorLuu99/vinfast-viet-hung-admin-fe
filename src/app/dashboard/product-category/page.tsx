@@ -215,7 +215,19 @@ export default function VinFastProductCategoryPage() {
           <p className="text-gray-600">xe điện VinFast VietHung</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open)
+          if (!open) {
+            setFormData({
+              name: '',
+              display_name: '',
+              description: '',
+              sort_order: 0
+            })
+            // Clear form and errors when dialog closes
+            setError(null)
+          }
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
               <Plus className="h-4 w-4 mr-2" />

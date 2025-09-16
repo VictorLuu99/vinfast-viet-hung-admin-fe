@@ -350,7 +350,33 @@ export default function VinFastProductionPage() {
           <p className="text-gray-600">Quản lý sản phẩm xe điện VinFast VietHung</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setFormData({
+              name: '',
+              category: 'xe-may-dien',
+              price: 0,
+              original_price: 0,
+              discount: 0,
+              description: '',
+              tagline: '',
+              color_variants: '',
+              colors: '',
+              default_color: '',
+              range_km: 0,
+              power_w: 0,
+              battery_type: '',
+              weight_kg: 0,
+              max_speed_kmh: 0,
+              charging_time: '',
+              storage_liters: 0,
+              badge: '',
+              available: 1,
+              priority: 0
+            })
+          }
+          }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
               <Plus className="h-4 w-4 mr-2" />

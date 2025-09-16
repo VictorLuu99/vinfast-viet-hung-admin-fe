@@ -38,6 +38,7 @@ import {
 import { apiClient } from '@/lib/utils'
 import { useToast, toast } from '@/components/ui/toast'
 import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
+import { FileUpload } from '@/components/ui/file-upload'
 
 interface NewsArticle {
   id: number
@@ -68,6 +69,7 @@ export default function VinFastNewsPage() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [editingArticle, setEditingArticle] = React.useState<NewsArticle | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [uploadError, setUploadError] = React.useState<string | null>(null)
   const { showToast } = useToast()
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog()
 
@@ -137,6 +139,7 @@ export default function VinFastNewsPage() {
             category: 'tin-cong-ty',
             published: 0
           })
+          setUploadError(null)
         } else {
           const errorMsg = 'Không thể cập nhật tin tức'
           setError(errorMsg)
@@ -158,6 +161,7 @@ export default function VinFastNewsPage() {
             category: 'tin-cong-ty',
             published: 0
           })
+          setUploadError(null)
         } else {
           const errorMsg = 'Không thể tạo tin tức'
           setError(errorMsg)
@@ -184,6 +188,7 @@ export default function VinFastNewsPage() {
       category: article.category,
       published: article.published
     })
+    setUploadError(null)
     setIsDialogOpen(true)
   }
 
@@ -240,7 +245,23 @@ export default function VinFastNewsPage() {
           <p className="text-gray-600">Quản lý tin tức và thông báo của VinFast VietHung</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open)
+          if (!open) {
+            setFormData({
+              title: '',
+              content: '',
+              excerpt: '',
+              featured_image: '',
+              category: 'tin-cong-ty',
+              published: 0
+            })
+            // Clear form and errors when dialog closes
+            setUploadError(null)
+            setError(null)
+            
+          }
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -312,13 +333,25 @@ export default function VinFastNewsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="featured_image">Ảnh đại diện (URL)</Label>
-                <Input
-                  id="featured_image"
+                <Label htmlFor="featured_image">Ảnh đại diện</Label>
+                <FileUpload
                   value={formData.featured_image}
-                  onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
+                  onChange={(url) => {
+                    setFormData({ ...formData, featured_image: url })
+                    setUploadError(null) // Clear error on successful upload
+                  }}
+                  onError={(error) => {
+                    setUploadError(error)
+                    showToast(toast.error('Lỗi tải ảnh', error))
+                  }}
+                  accept="image/*"
+                  maxSize={5}
+                  placeholder="Chọn ảnh đại diện cho bài viết"
+                  disabled={isSubmitting}
                 />
+                {uploadError && (
+                  <p className="text-sm text-red-600">{uploadError}</p>
+                )}
               </div>
 
               <div className="space-y-2">
