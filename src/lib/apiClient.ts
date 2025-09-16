@@ -342,6 +342,26 @@ export class ApiClient {
     return this.request('/api/products/categories')
   }
 
+  async createProductCategory(data: Record<string, unknown>) {
+    return this.request('/api/products/categories/admin', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async updateProductCategory(id: string, data: Record<string, unknown>) {
+    return this.request(`/api/products/categories/admin/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async deleteProductCategory(id: string) {
+    return this.request(`/api/products/categories/admin/${id}`, {
+      method: 'DELETE'
+    })
+  }
+
   // VinFast Dashboard Stats methods (Vietnamese-only)
   async getStats() {
     return this.request('/api/stats/admin')

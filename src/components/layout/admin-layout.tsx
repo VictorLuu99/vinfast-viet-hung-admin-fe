@@ -21,7 +21,8 @@ import {
   X,
   LayoutDashboard,
   Zap,
-  Factory
+  Factory,
+  Tags
 } from 'lucide-react'
 
 interface AdminLayoutProps {
@@ -48,8 +49,14 @@ const menuItems = [
     href: '/dashboard/production'
   },
   {
+    id: 'product-category',
+    label: 'Danh mục xe máy',
+    icon: Tags,
+    href: '/dashboard/product-category'
+  },
+  {
     id: 'contacts',
-    label: 'Liên hệ khách hàng',
+    label: 'Khách hàng liên hệ',
     icon: MessageSquare,
     href: '/dashboard/contacts'
   },
