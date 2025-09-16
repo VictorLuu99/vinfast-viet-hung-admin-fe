@@ -11,10 +11,10 @@ import { apiClient } from '@/lib/apiClient'
 interface UploadResult {
   success: boolean
   data: {
-    file_url: string
+    url: string
     filename: string
-    original_name: string
-    file_size: number
+    originalName: string
+    size: number
   }
   error?: string
 }
@@ -100,11 +100,11 @@ export function FileUpload({
       clearInterval(progressInterval)
       setUploadProgress(100)
 
-      if (result.success && result.data?.file_url) {
+      if (result.success && result.data?.url) {
         // Clean up object URL and set real URL
         URL.revokeObjectURL(objectUrl)
-        setPreviewUrl(result.data.file_url)
-        onChange(result.data.file_url)
+        setPreviewUrl(result.data.url)
+        onChange(result.data.url)
       } else {
         throw new Error('Không nhận được URL file')
       }

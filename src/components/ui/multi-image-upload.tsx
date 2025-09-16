@@ -11,10 +11,10 @@ import { apiClient } from '@/lib/apiClient'
 interface UploadResult {
   success: boolean
   data: {
-    file_url: string
+    url: string
     filename: string
-    original_name: string
-    file_size: number
+    originalName: string
+    size: number
   }
   error?: string
 }
@@ -264,13 +264,13 @@ export function MultiImageUpload({
 
         clearInterval(progressInterval)
 
-        if (result.success && result.data?.file_url) {
+        if (result.success && result.data?.url) {
           // Clean up object URL and update with real URL
           URL.revokeObjectURL(objectUrl)
           setImages(prev => {
             const newImages = prev.map(img =>
               img.id === imageId
-                ? { ...img, url: result.data.file_url, isUploading: false, progress: 100 }
+                ? { ...img, url: result.data.url, isUploading: false, progress: 100 }
                 : img
             )
             // Trigger onChange for successful uploads

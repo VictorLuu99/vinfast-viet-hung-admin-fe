@@ -38,10 +38,10 @@ interface ContentAnalytics {
 interface ImageUploadResult {
   success: boolean
   data: {
-    file_url: string
+    url: string
     filename: string
-    original_name: string
-    file_size: number
+    originalName: string
+    size: number
   }
   error?: string
 }
@@ -121,7 +121,7 @@ export function RichTextEditor({
       const result = await apiClient.uploadEditorFile(blobInfo.blob(), blobInfo.filename()) as ImageUploadResult
       
       if (result.success) {
-        success(result.data.file_url)
+        success(result.data.url)
         showToast({
           type: 'success',
           title: 'Success',

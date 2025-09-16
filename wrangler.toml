@@ -4,6 +4,10 @@ compatibility_date = "2024-01-01"
 # Cloudflare Pages configuration
 pages_build_output_dir = "out"
 
+# Environment variables for build time
+[vars]
+NEXT_PUBLIC_API_URL = "https://vinfast-viethung-api.xox-labs-server.workers.dev"
+
 # Custom headers for performance
 [[headers]]
 for = "/*"
