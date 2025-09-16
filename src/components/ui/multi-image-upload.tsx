@@ -170,7 +170,6 @@ export function MultiImageUpload({
   React.useEffect(() => {
     // Ensure value is an array before calling map
     if (!Array.isArray(value)) {
-      console.warn('MultiImageUpload: value is not an array:', value)
       setImages([])
       return
     }

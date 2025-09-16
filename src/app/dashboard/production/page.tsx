@@ -187,6 +187,11 @@ export default function VinFastProductionPage() {
     fetchProducts()
   }, [fetchCategories, fetchProducts])
 
+  // Debug colorVariants state changes
+  React.useEffect(() => {
+    console.log('🔧 colorVariants state changed:', colorVariants, 'type:', typeof colorVariants)
+  }, [colorVariants])
+
   // Reset form to initial state
   const resetForm = () => {
     setFormData({
@@ -570,7 +575,7 @@ export default function VinFastProductionPage() {
               {/* Color Variants and Image Gallery */}
               <div className="space-y-4">
                 <ImageGallery
-                  value={colorVariants}
+                  value={typeof colorVariants === 'string' ? JSON.parse(colorVariants) : colorVariants}
                   onChange={setColorVariants}
                   onError={(error) => {
                     setError(error)

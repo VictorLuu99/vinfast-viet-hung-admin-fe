@@ -118,9 +118,15 @@ export function ImageGallery({
   }
 
   const selectedColorImages = React.useMemo(() => {
-    if (!selectedColor) return []
+    if (!selectedColor) {
+      console.log('  - No selectedColor, returning empty array')
+      return []
+    }
+
     const images = value[selectedColor]
-    return Array.isArray(images) ? images : []
+    const result = Array.isArray(images) ? images : []
+
+    return result
   }, [selectedColor, value])
 
   return (
