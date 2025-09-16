@@ -6,6 +6,18 @@ import { Button } from './button'
 import { Progress } from './progress'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { apiClient } from '@/lib/apiClient'
+
+interface UploadResult {
+  success: boolean
+  data: {
+    file_url: string
+    filename: string
+    original_name: string
+    file_size: number
+  }
+  error?: string
+}
 
 interface FileUploadProps {
   value?: string
@@ -62,12 +74,6 @@ export function FileUpload({
       setIsUploading(true)
       setUploadProgress(0)
 
-      // Create form data
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('alt_text', file.name)
-      formData.append('caption', '')
-
       // Check if user is authenticated and has token
       if (!token) {
         throw new Error('Không tìm thấy token xác thực')
@@ -89,29 +95,16 @@ export function FileUpload({
       }, 100)
 
       // Upload to API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/editor`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
+      const result = await apiClient.uploadEditorFile(file, file.name) as UploadResult
 
       clearInterval(progressInterval)
       setUploadProgress(100)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Upload thất bại')
-      }
-
-      const result = await response.json()
-
-      if (result.success && result.data?.url) {
+      if (result.success && result.data?.file_url) {
         // Clean up object URL and set real URL
         URL.revokeObjectURL(objectUrl)
-        setPreviewUrl(result.data.url)
-        onChange(result.data.url)
+        setPreviewUrl(result.data.file_url)
+        onChange(result.data.file_url)
       } else {
         throw new Error('Không nhận được URL file')
       }

@@ -426,6 +426,61 @@ export class ApiClient {
     }
   }
 
+  // Editor file upload method (for TinyMCE and rich text editors)
+  async uploadEditorFile(file: File, filename?: string): Promise<{ success: boolean; data: unknown }> {
+    const formData = new FormData()
+    formData.append('file', file, filename || file.name)
+
+    let token: string | null = null
+
+    // Get token from Redux store
+    if (this.getState) {
+      token = selectToken(this.getState())
+    }
+
+    // Fallback to localStorage
+    if (!token && typeof window !== 'undefined') {
+      token = localStorage.getItem('admin-token')
+    }
+
+    try {
+      // Update activity
+      if (this.dispatch) {
+        this.dispatch(updateActivity())
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/upload/editor`, {
+        method: 'POST',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: formData
+      })
+
+      if (response.status === 401) {
+        // If no dispatch available, redirect immediately
+        if (!this.dispatch || !this.getState) {
+          console.log('401 Unauthorized during editor file upload - redirecting to login')
+          redirectToLogin()
+          throw new Error('Authentication expired. Please login again.')
+        }
+        // Handle unauthorized for editor file upload
+        return await this.handleUnauthorizedEditorFileUpload(file, filename)
+      }
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP ${response.status}`)
+      }
+
+      return result
+    } catch (error) {
+      console.error('Editor file upload failed:', error)
+      throw error
+    }
+  }
+
     // Content preview methods
     async previewContent(data: {
       content_html: string;
@@ -449,6 +504,31 @@ export class ApiClient {
       if (refreshResult.type === refreshTokenAsync.fulfilled.type) {
         // Token refreshed successfully, retry file upload
         return this.uploadFile(file)
+      } else {
+        // Refresh failed, force logout and redirect
+        this.dispatch(forceLogout())
+        redirectToLogin()
+        throw new Error('Authentication expired. Please login again.')
+      }
+    } catch {
+      this.dispatch(forceLogout())
+      redirectToLogin()
+      throw new Error('Authentication expired. Please login again.')
+    }
+  }
+
+  private async handleUnauthorizedEditorFileUpload(file: File, filename?: string) {
+    if (!this.dispatch || !this.getState) {
+      throw new Error('Unauthorized: Redux store not initialized')
+    }
+
+    try {
+      // Attempt to refresh token
+      const refreshResult = this.dispatch(refreshTokenAsync() as never) as { type: string }
+
+      if (refreshResult.type === refreshTokenAsync.fulfilled.type) {
+        // Token refreshed successfully, retry editor file upload
+        return this.uploadEditorFile(file, filename)
       } else {
         // Refresh failed, force logout and redirect
         this.dispatch(forceLogout())

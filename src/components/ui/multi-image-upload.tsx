@@ -6,6 +6,19 @@ import { Button } from './button'
 import { Progress } from './progress'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { apiClient } from '@/lib/apiClient'
+
+interface UploadResult {
+  success: boolean
+  data: {
+    file_url: string
+    filename: string
+    original_name: string
+    file_size: number
+  }
+  error?: string
+}
+
 import {
   DndContext,
   closestCenter,
@@ -237,12 +250,6 @@ export function MultiImageUpload({
           throw new Error('Không tìm thấy token xác thực')
         }
 
-        // Create form data
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('alt_text', file.name)
-        formData.append('caption', '')
-
         // Simulate progress
         const progressInterval = setInterval(() => {
           setImages(prev => prev.map(img =>
@@ -253,30 +260,17 @@ export function MultiImageUpload({
         }, 100)
 
         // Upload to API
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/editor`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formData
-        })
+        const result = await apiClient.uploadEditorFile(file, file.name) as UploadResult
 
         clearInterval(progressInterval)
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Upload thất bại')
-        }
-
-        const result = await response.json()
-
-        if (result.success && result.data?.url) {
+        if (result.success && result.data?.file_url) {
           // Clean up object URL and update with real URL
           URL.revokeObjectURL(objectUrl)
           setImages(prev => {
             const newImages = prev.map(img =>
               img.id === imageId
-                ? { ...img, url: result.data.url, isUploading: false, progress: 100 }
+                ? { ...img, url: result.data.file_url, isUploading: false, progress: 100 }
                 : img
             )
             // Trigger onChange for successful uploads

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
-import { apiClient } from '@/lib/utils'
+import { apiClient } from '@/lib/apiClient'
 import { useToast } from '@/components/ui/toast'
 import { 
   Image, 
@@ -67,7 +67,7 @@ export function RichTextEditor({
   onAnalytics
 }: RichTextEditorProps) {
   const editorRef = useRef<TinyMCEEditor | null>(null)
-  const { user, token } = useAuth()
+  const { user } = useAuth()
   const { showToast } = useToast()
   const [isUploading, setIsUploading] = React.useState(false)
   const [analytics, setAnalytics] = React.useState<ContentAnalytics>({
@@ -116,19 +116,9 @@ export function RichTextEditor({
     }
 
     setIsUploading(true)
-    const formData = new FormData()
-    formData.append('file', blobInfo.blob(), blobInfo.filename())
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/editor`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
-
-      const result: ImageUploadResult = await response.json()
+      const result = await apiClient.uploadEditorFile(blobInfo.blob(), blobInfo.filename()) as ImageUploadResult
       
       if (result.success) {
         success(result.data.file_url)
