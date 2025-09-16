@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Upload, X, Image, AlertCircle } from 'lucide-react'
+import { Upload, X, Image } from 'lucide-react'
 import { Button } from './button'
 import { Progress } from './progress'
 import { cn } from '@/lib/utils'
@@ -236,14 +236,14 @@ export function FileUpload({
                 {previewUrl.startsWith('data:') || previewUrl.includes('blob:') || previewUrl.includes('http') ? (
                   <img
                     src={previewUrl}
-                    alt="Preview"
+                    alt="File preview"
                     className="w-full h-full object-cover"
                     onError={() => {
                       console.log('Image failed to load:', previewUrl)
                     }}
                   />
                 ) : (
-                  <Image className="h-6 w-6 text-gray-400" />
+                  <Image className="h-6 w-6 text-gray-400" aria-label="File placeholder" />
                 )}
               </div>
             </div>

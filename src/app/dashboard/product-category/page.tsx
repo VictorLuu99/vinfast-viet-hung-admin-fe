@@ -33,7 +33,6 @@ import {
   Calendar,
   Save,
   Hash,
-  FileText,
 } from 'lucide-react'
 import { apiClient } from '@/lib/utils'
 import { useToast, toast } from '@/components/ui/toast'

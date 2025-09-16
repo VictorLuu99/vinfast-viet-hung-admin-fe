@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Huang Shan Global - Admin Panel",
-  description: "Administrative panel for Huang Shan Global logistics platform",
+  title: "VinFast Việt Hùng - Admin Panel",
+  description: "Administrative panel for VinFast Việt Hùng logistics platform",
 };
 
 export default function RootLayout({

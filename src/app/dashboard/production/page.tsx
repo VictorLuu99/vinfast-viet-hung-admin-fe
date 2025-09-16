@@ -41,6 +41,7 @@ import {
 import { apiClient } from '@/lib/utils'
 import { useToast, toast } from '@/components/ui/toast'
 import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
+import { ImageGallery } from '@/components/ui/image-gallery'
 
 interface Product {
   id: number
@@ -81,13 +82,14 @@ export default function VinFastProductionPage() {
   const [products, setProducts] = React.useState<Product[]>([])
   const [categories, setCategories] = React.useState<Category[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
-  const [isCategoriesLoading, setIsCategoriesLoading] = React.useState(true)
+  const [, setIsCategoriesLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [searchTerm, setSearchTerm] = React.useState('')
   const [selectedCategory, setSelectedCategory] = React.useState<string>('all')
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [colorVariants, setColorVariants] = React.useState<Record<string, string[]>>({ 'Trắng': [] })
   const { showToast } = useToast()
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog()
 
@@ -153,7 +155,18 @@ export default function VinFastProductionPage() {
       })
 
       if (response.success) {
-        setProducts(response.data as Product[] || [])
+        console.log('📥 Loaded products from API:', response.data)
+        const loadedProducts = response.data as Product[] || []
+
+        // Debug: Check color_variants in loaded products
+        loadedProducts.forEach((product, index) => {
+          console.log(`🔍 Product ${index + 1} (${product.name}):`)
+          console.log(`  - color_variants: ${product.color_variants}`)
+          console.log(`  - colors: ${product.colors}`)
+          console.log(`  - default_color: ${product.default_color}`)
+        })
+
+        setProducts(loadedProducts)
       } else {
         const errorMsg = 'Không thể tải danh sách sản phẩm'
         setError(errorMsg)
@@ -174,6 +187,34 @@ export default function VinFastProductionPage() {
     fetchProducts()
   }, [fetchCategories, fetchProducts])
 
+  // Reset form to initial state
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      category: 'xe-may-dien',
+      price: 0,
+      original_price: 0,
+      discount: 0,
+      description: '',
+      tagline: '',
+      color_variants: '',
+      colors: '',
+      default_color: '',
+      range_km: 0,
+      power_w: 0,
+      battery_type: '',
+      weight_kg: 0,
+      max_speed_kmh: 0,
+      charging_time: '',
+      storage_liters: 0,
+      badge: '',
+      available: 1,
+      priority: 0
+    })
+    setColorVariants({ 'Trắng': [] })
+    setEditingProduct(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -181,74 +222,83 @@ export default function VinFastProductionPage() {
       setIsSubmitting(true)
       setError(null)
 
+      // Debug: Log current colorVariants state
+      console.log('🎨 Current colorVariants state:', colorVariants)
+      console.log('🎨 colorVariants keys:', Object.keys(colorVariants))
+      console.log('🎨 Total colors:', Object.keys(colorVariants).length)
+
+      // Validation: Ensure we have at least one color with images
+      const hasValidColors = Object.keys(colorVariants).length > 0
+      const hasImages = Object.values(colorVariants).some(images => images.length > 0)
+
+      console.log('✅ Has valid colors:', hasValidColors)
+      console.log('🖼️ Has images:', hasImages)
+
+      if (!hasValidColors) {
+        setError('Vui lòng thêm ít nhất một màu sắc')
+        setIsSubmitting(false)
+        return
+      }
+
+      // Prepare submission data with properly formatted color variants
+      const colorVariantsJSON = JSON.stringify(colorVariants)
+      const colorsArray = Object.keys(colorVariants)
+      const colorsJSON = JSON.stringify(colorsArray)
+      const defaultColor = colorsArray[0] || ''
+
+      // Debug: Log prepared data
+      console.log('📦 Prepared colorVariantsJSON:', colorVariantsJSON)
+      console.log('📦 Prepared colorsJSON:', colorsJSON)
+      console.log('📦 Default color:', defaultColor)
+
+      // Create submission data - ensuring color data is not overridden
+      const { color_variants, colors, default_color, ...cleanFormData } = formData
+
+      const submissionData = {
+        ...cleanFormData,
+        color_variants: colorVariantsJSON, // This should contain the gallery data
+        colors: colorsJSON,
+        default_color: defaultColor
+      }
+
+      console.log('🚀 Final submission data:', submissionData)
+
       if (editingProduct) {
         // Update existing product
-        const response = await apiClient.updateProduct(editingProduct.id.toString(), formData)
+        console.log('🔄 Updating product ID:', editingProduct.id)
+        const response = await apiClient.updateProduct(editingProduct.id.toString(), submissionData)
+
+        console.log('📨 Update API response:', response)
 
         if (response.success) {
+          console.log('✅ Product updated successfully')
           showToast(toast.success('Cập nhật thành công', 'Sản phẩm đã được cập nhật'))
           await fetchProducts() // Refresh the list
           setIsDialogOpen(false)
-          setEditingProduct(null)
-          setFormData({
-            name: '',
-            category: 'xe-may-dien',
-            price: 0,
-            original_price: 0,
-            discount: 0,
-            description: '',
-            tagline: '',
-            color_variants: '',
-            colors: '',
-            default_color: '',
-            range_km: 0,
-            power_w: 0,
-            battery_type: '',
-            weight_kg: 0,
-            max_speed_kmh: 0,
-            charging_time: '',
-            storage_liters: 0,
-            badge: '',
-            available: 1,
-            priority: 0
-          })
+          resetForm()
         } else {
-          const errorMsg = 'Không thể cập nhật sản phẩm'
+          console.error('❌ Update failed:', response)
+          const errorMsg = response.error || 'Không thể cập nhật sản phẩm'
           setError(errorMsg)
           showToast(toast.error('Lỗi cập nhật', errorMsg))
         }
       } else {
         // Create new product
-        const response = await apiClient.createProduct(formData)
+        console.log('➕ Creating new product')
+        const response = await apiClient.createProduct(submissionData)
+
+        console.log('📨 Create API response:', response)
 
         if (response.success) {
+          console.log('✅ Product created successfully')
+          console.log('🆔 New product data:', response.data)
           showToast(toast.success('Tạo thành công', 'Sản phẩm mới đã được tạo'))
           await fetchProducts() // Refresh the list
           setIsDialogOpen(false)
-          setFormData({
-            name: '',
-            category: 'xe-may-dien',
-            price: 0,
-            original_price: 0,
-            discount: 0,
-            description: '',
-            tagline: '',
-            color_variants: '',
-            colors: '',
-            default_color: '',
-            range_km: 0,
-            power_w: 0,
-            battery_type: '',
-            weight_kg: 0,
-            max_speed_kmh: 0,
-            charging_time: '',
-            storage_liters: 0,
-            badge: '',
-            available: 1,
-            priority: 0
-          })
+          resetForm()
         } else {
-          const errorMsg = 'Không thể tạo sản phẩm'
+          console.error('❌ Create failed:', response)
+          const errorMsg = response.error || 'Không thể tạo sản phẩm'
           setError(errorMsg)
           showToast(toast.error('Lỗi tạo mới', errorMsg))
         }
@@ -264,7 +314,56 @@ export default function VinFastProductionPage() {
   }
 
   const handleEdit = (product: Product) => {
+    console.log('🚨 EDIT BUTTON CLICKED - handleEdit called')
+    console.log('✏️ Editing product:', product.name)
+    console.log('📝 Original product data:', product)
+
     setEditingProduct(product)
+
+    // Parse color variants from JSON string
+    let parsedColorVariants: Record<string, string[]> = {}
+    try {
+      if (product.color_variants) {
+        console.log('🔄 Parsing color_variants:', product.color_variants)
+        parsedColorVariants = JSON.parse(product.color_variants)
+        console.log('✅ Parsed colorVariants:', parsedColorVariants)
+      } else {
+        console.log('⚠️ No color_variants found in product')
+      }
+    } catch (error) {
+      console.error('❌ Error parsing color_variants:', error)
+      console.log('📄 Raw color_variants data:', product.color_variants)
+    }
+
+    // If no color variants but has colors, create basic structure
+    if (Object.keys(parsedColorVariants).length === 0 && product.colors) {
+      try {
+        const colorArray = JSON.parse(product.colors)
+        if (Array.isArray(colorArray)) {
+          colorArray.forEach(color => {
+            parsedColorVariants[color] = []
+          })
+        }
+      } catch {
+        // Fallback: treat as comma-separated string
+        const colorArray = product.colors.split(',').map(c => c.trim()).filter(c => c)
+        colorArray.forEach(color => {
+          parsedColorVariants[color] = []
+        })
+      }
+    }
+
+    // Ensure at least one color exists
+    if (Object.keys(parsedColorVariants).length === 0) {
+      console.log('⚙️ No colors found, setting default color')
+      parsedColorVariants = { 'Trắng': [] }
+    }
+
+    console.log('🎯 Final parsedColorVariants for editing:', parsedColorVariants)
+    console.log('🎯 Setting colorVariants state to:', parsedColorVariants)
+
+    setColorVariants(parsedColorVariants)
+
     setFormData({
       name: product.name,
       category: product.category,
@@ -287,7 +386,10 @@ export default function VinFastProductionPage() {
       available: product.available,
       priority: product.priority
     })
+
+    console.log('🚪 About to open dialog - setIsDialogOpen(true)')
     setIsDialogOpen(true)
+    console.log('🚪 Dialog should be open now, isDialogOpen will be:', true)
   }
 
   const handleDelete = (product: Product) => {
@@ -353,37 +455,19 @@ export default function VinFastProductionPage() {
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) {
-            setFormData({
-              name: '',
-              category: 'xe-may-dien',
-              price: 0,
-              original_price: 0,
-              discount: 0,
-              description: '',
-              tagline: '',
-              color_variants: '',
-              colors: '',
-              default_color: '',
-              range_km: 0,
-              power_w: 0,
-              battery_type: '',
-              weight_kg: 0,
-              max_speed_kmh: 0,
-              charging_time: '',
-              storage_liters: 0,
-              badge: '',
-              available: 1,
-              priority: 0
-            })
+            resetForm()
+          } else if (!editingProduct) {
+            // Initialize with default color for new products
+            setColorVariants({ 'Trắng': [] })
           }
-          }}>
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
               <Plus className="h-4 w-4 mr-2" />
               Tạo sản phẩm
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingProduct ? 'Chỉnh sửa sản phẩm' : 'Tạo sản phẩm mới'}
@@ -483,26 +567,19 @@ export default function VinFastProductionPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="colors">Màu sắc</Label>
-                  <Input
-                    id="colors"
-                    value={formData.colors}
-                    onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
-                    placeholder="Đỏ, Xanh, Trắng"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="default_color">Màu mặc định</Label>
-                  <Input
-                    id="default_color"
-                    value={formData.default_color}
-                    onChange={(e) => setFormData({ ...formData, default_color: e.target.value })}
-                    placeholder="Trắng"
-                  />
-                </div>
+              {/* Color Variants and Image Gallery */}
+              <div className="space-y-4">
+                <ImageGallery
+                  value={colorVariants}
+                  onChange={setColorVariants}
+                  onError={(error) => {
+                    setError(error)
+                    showToast(toast.error('Lỗi tải ảnh', error))
+                  }}
+                  maxImagesPerColor={10}
+                  maxImageSize={5}
+                  disabled={isSubmitting}
+                />
               </div>
 
               <div className="grid grid-cols-3 gap-4">
