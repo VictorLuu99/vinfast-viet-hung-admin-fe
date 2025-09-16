@@ -307,6 +307,41 @@ export class ApiClient {
     })
   }
 
+  // VinFast Products methods (Vietnamese-only)
+  async getProducts(params?: { page?: number; limit?: number; category?: string; search?: string }) {
+    const searchParams = new URLSearchParams()
+    if (params?.page) searchParams.set('page', params.page.toString())
+    if (params?.limit) searchParams.set('limit', params.limit.toString())
+    if (params?.category) searchParams.set('category', params.category)
+    if (params?.search) searchParams.set('search', params.search)
+
+    return this.request(`/api/products/admin?${searchParams}`)
+  }
+
+  async createProduct(data: Record<string, unknown>) {
+    return this.request('/api/products/admin', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async updateProduct(id: string, data: Record<string, unknown>) {
+    return this.request(`/api/products/admin/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async deleteProduct(id: string) {
+    return this.request(`/api/products/admin/${id}`, {
+      method: 'DELETE'
+    })
+  }
+
+  async getProductCategories() {
+    return this.request('/api/products/categories')
+  }
+
   // VinFast Dashboard Stats methods (Vietnamese-only)
   async getStats() {
     return this.request('/api/stats/admin')

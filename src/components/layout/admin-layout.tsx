@@ -20,7 +20,8 @@ import {
   Menu,
   X,
   LayoutDashboard,
-  Zap
+  Zap,
+  Factory
 } from 'lucide-react'
 
 interface AdminLayoutProps {
@@ -39,6 +40,12 @@ const menuItems = [
     label: 'Quản lý tin tức',
     icon: FileText,
     href: '/dashboard/news'
+  },
+  {
+    id: 'production',
+    label: 'Quản lý xe máy',
+    icon: Factory,
+    href: '/dashboard/production'
   },
   {
     id: 'contacts',
