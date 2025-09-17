@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { BulletPointTextarea } from '@/components/BulletPointTextarea'
+import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
 import { apiClient, formatDate, getStatusBadgeVariant } from '@/lib/utils'
 import { Search, Plus, Edit, Trash2, Briefcase, MapPin, Clock, Calendar, Filter } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
@@ -58,6 +58,7 @@ export default function JobsPage() {
   const [statusFilter, setStatusFilter] = React.useState<string>('all')
   const [selectedJob, setSelectedJob] = React.useState<Job | null>(null)
   const [isEditing, setIsEditing] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [page, setPage] = React.useState(1)
   const [totalPages, setTotalPages] = React.useState(1)
 
@@ -103,10 +104,11 @@ export default function JobsPage() {
 
   const handleSave = async () => {
     try {
-      const response = selectedJob 
+      setIsSubmitting(true)
+      const response = selectedJob
         ? await apiClient.updateJob(selectedJob.id.toString(), formData)
         : await apiClient.createJob(formData)
-      
+
       if (response) {
         await fetchJobs()
         setSelectedJob(null)
@@ -120,6 +122,8 @@ export default function JobsPage() {
     } catch (error) {
       console.error('Failed to save job:', error)
       showToast(toast.error('Failed to Save Job', 'An error occurred while saving the job posting. Please try again.'))
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -572,42 +576,34 @@ export default function JobsPage() {
 
             {/* Job Description */}
             <div className="space-y-4">
-              <BulletPointTextarea
-                id="description"
-                label="Mô tả công việc"
+              <ReactQuillEditor
                 value={formData.description}
-                onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
-                placeholder="• Mô tả chi tiết về công việc&#10;• Trách nhiệm chính của vị trí&#10;• Môi trường làm việc tại VinFast VietHung"
-                minRows={4}
-                maxRows={8}
+                onChange={(content) => setFormData(prev => ({ ...prev, description: content }))}
+                placeholder=""
                 required
+                disabled={isSubmitting}
               />
             </div>
 
             {/* Job Requirements */}
             <div className="space-y-4">
-              <BulletPointTextarea
-                id="requirements"
-                label="Yêu cầu công việc"
+              <ReactQuillEditor
                 value={formData.requirements}
-                onChange={(value) => setFormData(prev => ({ ...prev, requirements: value }))}
-                placeholder="• Tốt nghiệp đại học chuyên ngành liên quan&#10;• Có kinh nghiệm làm việc trong ngành ô tô&#10;• Kỹ năng giao tiếp và bán hàng tốt&#10;• Yêu thích sản phẩm xe điện VinFast"
-                minRows={4}
-                maxRows={10}
+                onChange={(content) => setFormData(prev => ({ ...prev, requirements: content }))}
+                placeholder=""
                 required
+                disabled={isSubmitting}
               />
             </div>
 
             {/* Job Benefits */}
             <div className="space-y-4">
-              <BulletPointTextarea
-                id="benefits"
-                label="Quyền lợi (Tùy chọn)"
+              <ReactQuillEditor
                 value={formData.benefits}
-                onChange={(value) => setFormData(prev => ({ ...prev, benefits: value }))}
-                placeholder="• Lương thưởng cạnh tranh theo năng lực&#10;• Bảo hiểm sức khỏe VinFast toàn diện&#10;• Nghỉ phép có lương, du lịch hàng năm&#10;• Đào tạo về sản phẩm xe điện VinFast&#10;• Cơ hội thăng tiến trong hệ thống VinFast"
-                minRows={3}
-                maxRows={8}
+                onChange={(content) => setFormData(prev => ({ ...prev, benefits: content }))}
+                placeholder=""
+                label="Quyền lợi (Tùy chọn)"
+                disabled={isSubmitting}
               />
             </div>
 
