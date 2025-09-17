@@ -12,7 +12,8 @@ import {
   Clock,
   CheckCircle,
   Car,
-  Zap
+  Zap,
+  Package
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
@@ -23,6 +24,7 @@ interface DashboardStats {
   contacts: { total: number; new: number; read: number; replied: number; closed: number }
   jobs: { total: number; active: number; closed: number; draft: number }
   candidates: { total: number; pending: number; reviewed: number; accepted: number; rejected: number }
+  products: { total: number; active: number; inactive: number; discontinued: number; available: number; out_of_stock: number }
 }
 
 interface RecentActivity {
@@ -78,7 +80,8 @@ export default function VinFastDashboardPage() {
           news: { total: 0, published: 0, draft: 0 },
           contacts: { total: 0, new: 0, read: 0, replied: 0, closed: 0 },
           jobs: { total: 0, active: 0, closed: 0, draft: 0 },
-          candidates: { total: 0, pending: 0, reviewed: 0, accepted: 0, rejected: 0 }
+          candidates: { total: 0, pending: 0, reviewed: 0, accepted: 0, rejected: 0 },
+          products: { total: 0, active: 0, inactive: 0, discontinued: 0, available: 0, out_of_stock: 0 }
         })
         setRecentActivity([])
       } finally {
@@ -234,6 +237,28 @@ export default function VinFastDashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Products Stats */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Sản phẩm</CardTitle>
+            <Package className="h-4 w-4 text-gray-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.products.total || 0}</div>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge variant="default" className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200">
+                {stats?.products.active || 0} Hoạt động
+              </Badge>
+              <Badge variant="default" className="text-xs bg-green-100 text-green-800 hover:bg-green-200">
+                {stats?.products.available || 0} Có sẵn
+              </Badge>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Xe máy điện VinFast
+            </p>
+          </CardContent>
+        </Card>
+
         {/* System Health */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -275,6 +300,13 @@ export default function VinFastDashboardPage() {
                 <Briefcase className="h-4 w-4" />
                 Đăng tin tuyển dụng
               </button>
+              <button
+                onClick={() => router.push('/dashboard/production')}
+                className="w-full text-left p-2 text-sm hover:bg-gray-50 rounded-md flex items-center gap-2"
+              >
+                <Package className="h-4 w-4" />
+                Tạo sản phẩm mới
+              </button>
             </div>
           </CardContent>
         </Card>
@@ -300,6 +332,7 @@ export default function VinFastDashboardPage() {
                     case 'news': return 'bg-green-500'
                     case 'contact': return 'bg-blue-500'
                     case 'job': return 'bg-purple-500'
+                    case 'product': return 'bg-orange-500'
                     default: return 'bg-gray-500'
                   }
                 }
