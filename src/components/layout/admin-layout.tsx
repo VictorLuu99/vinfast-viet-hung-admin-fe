@@ -133,18 +133,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
           <div className="flex items-center gap-4">
             {/* Search */}
-            <div className="relative hidden md:block">
+            {/* <div className="relative hidden md:block">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Tìm kiếm..."
                 className="pl-10 w-64"
               />
-            </div>
+            </div> */}
 
             {/* Notifications */}
-            <Button variant="ghost" size="icon">
+            {/* <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
-            </Button>
+            </Button> */}
 
             {/* User Menu */}
             <div className="flex items-center gap-3">

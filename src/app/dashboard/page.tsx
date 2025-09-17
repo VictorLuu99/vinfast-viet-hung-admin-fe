@@ -16,16 +16,33 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
+import { apiClient } from '@/lib/apiClient'
 
 interface DashboardStats {
   news: { total: number; published: number; draft: number }
-  contacts: { total: number; new: number; replied: number }
-  jobs: { total: number; active: number }
-  candidates: { total: number; pending: number; hired: number }
+  contacts: { total: number; new: number; read: number; replied: number; closed: number }
+  jobs: { total: number; active: number; closed: number; draft: number }
+  candidates: { total: number; pending: number; reviewed: number; accepted: number; rejected: number }
+}
+
+interface RecentActivity {
+  type: string
+  activity: string
+  timestamp: string
+}
+
+interface StatsApiResponse {
+  success: boolean
+  data: {
+    stats: DashboardStats
+    recentActivity: RecentActivity[]
+    lastUpdated: string
+  }
 }
 
 export default function VinFastDashboardPage() {
   const [stats, setStats] = React.useState<DashboardStats | null>(null)
+  const [recentActivity, setRecentActivity] = React.useState<RecentActivity[]>([])
   const [isStatsLoading, setIsStatsLoading] = React.useState(true)
 
   const { user, isLoading } = useAuth()
@@ -43,21 +60,27 @@ export default function VinFastDashboardPage() {
 
       try {
         setIsStatsLoading(true)
-        // Mock data for now - will connect to actual API later
-        setStats({
-          news: { total: 12, published: 8, draft: 4 },
-          contacts: { total: 45, new: 12, replied: 33 },
-          jobs: { total: 8, active: 5 },
-          candidates: { total: 23, pending: 8, hired: 3 }
-        })
+
+        // Fetch real data from VinFast API
+        const response = await apiClient.getStats() as StatsApiResponse
+
+        if (response.success && response.data) {
+          setStats(response.data.stats)
+          setRecentActivity(response.data.recentActivity || [])
+        } else {
+          throw new Error('Failed to fetch stats')
+        }
       } catch (error) {
         console.error('Error fetching dashboard stats:', error)
+
+        // Set fallback empty data on error
         setStats({
           news: { total: 0, published: 0, draft: 0 },
-          contacts: { total: 0, new: 0, replied: 0 },
-          jobs: { total: 0, active: 0 },
-          candidates: { total: 0, pending: 0, hired: 0 }
+          contacts: { total: 0, new: 0, read: 0, replied: 0, closed: 0 },
+          jobs: { total: 0, active: 0, closed: 0, draft: 0 },
+          candidates: { total: 0, pending: 0, reviewed: 0, accepted: 0, rejected: 0 }
         })
+        setRecentActivity([])
       } finally {
         setIsStatsLoading(false)
       }
@@ -108,7 +131,7 @@ export default function VinFastDashboardPage() {
       </div>
 
       {/* Welcome Message */}
-      <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-green-50">
+      {/* <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-green-50">
         <CardContent className="pt-6">
           <div className="flex items-center gap-3">
             <div className="rounded-full bg-blue-100 p-3">
@@ -122,7 +145,7 @@ export default function VinFastDashboardPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -202,7 +225,7 @@ export default function VinFastDashboardPage() {
                 {stats?.candidates.pending || 0} Chờ xử lý
               </Badge>
               <Badge variant="default" className="text-xs bg-green-100 text-green-800 hover:bg-green-200">
-                {stats?.candidates.hired || 0} Đã tuyển
+                {stats?.candidates.accepted || 0} Đã tuyển
               </Badge>
             </div>
             <p className="text-xs text-gray-500 mt-2">
@@ -270,26 +293,47 @@ export default function VinFastDashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-gray-600">Đã xuất bản tin tức: &quot;VinFast VF 8 ra mắt tại VietHung&quot;</span>
-              <span className="text-gray-400 ml-auto">2 giờ trước</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-              <span className="text-gray-600">Nhận được 3 liên hệ mới từ khách hàng</span>
-              <span className="text-gray-400 ml-auto">4 giờ trước</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-              <span className="text-gray-600">Cập nhật vị trí tuyển dụng: &quot;Nhân viên tư vấn bán hàng&quot;</span>
-              <span className="text-gray-400 ml-auto">1 ngày trước</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-              <span className="text-gray-600">Có 2 ứng viên mới nộp hồ sơ</span>
-              <span className="text-gray-400 ml-auto">2 ngày trước</span>
-            </div>
+            {recentActivity.length > 0 ? (
+              recentActivity.map((activity, index) => {
+                const getActivityColor = (type: string) => {
+                  switch (type) {
+                    case 'news': return 'bg-green-500'
+                    case 'contact': return 'bg-blue-500'
+                    case 'job': return 'bg-purple-500'
+                    default: return 'bg-gray-500'
+                  }
+                }
+
+                const getTimeAgo = (timestamp: string) => {
+                  const now = new Date()
+                  const activityTime = new Date(timestamp)
+                  const diffMs = now.getTime() - activityTime.getTime()
+                  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+                  const diffDays = Math.floor(diffHours / 24)
+
+                  if (diffDays > 0) {
+                    return `${diffDays} ngày trước`
+                  } else if (diffHours > 0) {
+                    return `${diffHours} giờ trước`
+                  } else {
+                    return 'Vừa xong'
+                  }
+                }
+
+                return (
+                  <div key={index} className="flex items-center gap-3 text-sm">
+                    <div className={`w-2 h-2 rounded-full ${getActivityColor(activity.type)}`}></div>
+                    <span className="text-gray-600">{activity.activity}</span>
+                    <span className="text-gray-400 ml-auto">{getTimeAgo(activity.timestamp)}</span>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>Chưa có hoạt động nào gần đây</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
