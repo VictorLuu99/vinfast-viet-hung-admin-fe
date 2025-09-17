@@ -39,6 +39,7 @@ import { apiClient } from '@/lib/utils'
 import { useToast, toast } from '@/components/ui/toast'
 import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
 import { FileUpload } from '@/components/ui/file-upload'
+import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
 
 interface NewsArticle {
   id: number
@@ -355,14 +356,13 @@ export default function VinFastNewsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">Nội dung *</Label>
-                <Textarea
-                  id="content"
+                <ReactQuillEditor
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  onChange={(content) => setFormData({ ...formData, content })}
                   placeholder="Nhập nội dung bài viết..."
-                  rows={8}
+                  label="Nội dung"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
 
