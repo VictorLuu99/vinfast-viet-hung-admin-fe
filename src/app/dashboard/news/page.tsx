@@ -358,7 +358,7 @@ export default function VinFastNewsPage() {
               <div className="space-y-2">
                 <ReactQuillEditor
                   value={formData.content}
-                  onChange={(content) => setFormData({ ...formData, content })}
+                  onChange={(content) => setFormData(prev => ({ ...prev, content }))}
                   placeholder="Nhập nội dung bài viết..."
                   label="Nội dung"
                   required

@@ -54,7 +54,7 @@ export function ReactQuillEditor({
     'color', 'background'
   ]
 
-  // Initialize Quill
+  // Initialize Quill only once
   useEffect(() => {
     if (typeof window === 'undefined' || !editorRef.current || isInitialized.current) {
       return
@@ -103,12 +103,19 @@ export function ReactQuillEditor({
 
     return () => {
       if (quillInstance.current) {
+        // Proper cleanup
+        quillInstance.current.off('text-change')
         quillInstance.current = null
         isInitialized.current = false
+        // Clear DOM to prevent toolbar duplication
+        const editorElement = editorRef.current
+        if (editorElement) {
+          editorElement.innerHTML = ''
+        }
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modules, formats, placeholder, disabled])
+  }, []) // Empty dependency array - initialize only once to prevent toolbar duplication
 
   // Update content when value prop changes
   useEffect(() => {
@@ -119,6 +126,17 @@ export function ReactQuillEditor({
       }
     }
   }, [value])
+
+  // Update placeholder when it changes
+  useEffect(() => {
+    if (quillInstance.current && isInitialized.current) {
+      // Update placeholder through Quill's root element
+      const editor = quillInstance.current.root
+      if (editor) {
+        editor.dataset.placeholder = placeholder
+      }
+    }
+  }, [placeholder])
 
   // Update disabled state
   useEffect(() => {
