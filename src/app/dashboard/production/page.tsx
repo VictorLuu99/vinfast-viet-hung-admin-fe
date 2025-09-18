@@ -155,16 +155,8 @@ export default function VinFastProductionPage() {
       })
 
       if (response.success) {
-        console.log('📥 Loaded products from API:', response.data)
         const loadedProducts = response.data as Product[] || []
 
-        // Debug: Check color_variants in loaded products
-        loadedProducts.forEach((product, index) => {
-          console.log(`🔍 Product ${index + 1} (${product.name}):`)
-          console.log(`  - color_variants: ${product.color_variants}`)
-          console.log(`  - colors: ${product.colors}`)
-          console.log(`  - default_color: ${product.default_color}`)
-        })
 
         setProducts(loadedProducts)
       } else {
@@ -187,10 +179,6 @@ export default function VinFastProductionPage() {
     fetchProducts()
   }, [fetchCategories, fetchProducts])
 
-  // Debug colorVariants state changes
-  React.useEffect(() => {
-    console.log('🔧 colorVariants state changed:', colorVariants, 'type:', typeof colorVariants)
-  }, [colorVariants])
 
   // Reset form to initial state
   const resetForm = () => {
@@ -220,24 +208,52 @@ export default function VinFastProductionPage() {
     setEditingProduct(null)
   }
 
+  // Helper function to validate and normalize colorVariants
+  const validateAndNormalizeColorVariants = (data: unknown): Record<string, string[]> => {
+    if (typeof data === 'string') {
+      try {
+        const parsed = JSON.parse(data)
+        if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed
+        }
+      } catch {
+        // Invalid JSON, return default
+      }
+    }
+    
+    if (Array.isArray(data)) {
+      const converted: Record<string, string[]> = {}
+      data.forEach((item, index) => {
+        if (typeof item === 'object' && item !== null && 'name' in item && 'images' in item) {
+          converted[item.name] = Array.isArray(item.images) ? item.images : []
+        } else if (typeof item === 'string') {
+          converted[item] = []
+        } else {
+          converted[`Color_${index}`] = []
+        }
+      })
+      return converted
+    }
+    
+    if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+      return data as Record<string, string[]>
+    }
+    
+    // Fallback to default
+    return { 'Trắng': [] }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
       setIsSubmitting(true)
       setError(null)
-
+      
+      const colorVariantsTMP = validateAndNormalizeColorVariants(colorVariants)
       // Debug: Log current colorVariants state
-      console.log('🎨 Current colorVariants state:', colorVariants)
-      console.log('🎨 colorVariants keys:', Object.keys(colorVariants))
-      console.log('🎨 Total colors:', Object.keys(colorVariants).length)
-
       // Validation: Ensure we have at least one color with images
-      const hasValidColors = Object.keys(colorVariants).length > 0
-      const hasImages = Object.values(colorVariants).some(images => images.length > 0)
-
-      console.log('✅ Has valid colors:', hasValidColors)
-      console.log('🖼️ Has images:', hasImages)
+      const hasValidColors = Object.keys(colorVariantsTMP).length > 0
 
       if (!hasValidColors) {
         setError('Vui lòng thêm ít nhất một màu sắc')
@@ -246,18 +262,13 @@ export default function VinFastProductionPage() {
       }
 
       // Prepare submission data with properly formatted color variants
-      const colorVariantsJSON = JSON.stringify(colorVariants)
-      const colorsArray = Object.keys(colorVariants)
+      const colorVariantsJSON = JSON.stringify(colorVariantsTMP)
+      const colorsArray = Object.keys(colorVariantsTMP)
       const colorsJSON = JSON.stringify(colorsArray)
       const defaultColor = colorsArray[0] || ''
 
-      // Debug: Log prepared data
-      console.log('📦 Prepared colorVariantsJSON:', colorVariantsJSON)
-      console.log('📦 Prepared colorsJSON:', colorsJSON)
-      console.log('📦 Default color:', defaultColor)
-
       // Create submission data - ensuring color data is not overridden
-      const { color_variants, colors, default_color, ...cleanFormData } = formData
+      const { ...cleanFormData } = formData
 
       const submissionData = {
         ...cleanFormData,
@@ -266,17 +277,12 @@ export default function VinFastProductionPage() {
         default_color: defaultColor
       }
 
-      console.log('🚀 Final submission data:', submissionData)
 
       if (editingProduct) {
         // Update existing product
-        console.log('🔄 Updating product ID:', editingProduct.id)
         const response = await apiClient.updateProduct(editingProduct.id.toString(), submissionData)
 
-        console.log('📨 Update API response:', response)
-
         if (response.success) {
-          console.log('✅ Product updated successfully')
           showToast(toast.success('Cập nhật thành công', 'Sản phẩm đã được cập nhật'))
           await fetchProducts() // Refresh the list
           setIsDialogOpen(false)
@@ -289,14 +295,8 @@ export default function VinFastProductionPage() {
         }
       } else {
         // Create new product
-        console.log('➕ Creating new product')
         const response = await apiClient.createProduct(submissionData)
-
-        console.log('📨 Create API response:', response)
-
         if (response.success) {
-          console.log('✅ Product created successfully')
-          console.log('🆔 New product data:', response.data)
           showToast(toast.success('Tạo thành công', 'Sản phẩm mới đã được tạo'))
           await fetchProducts() // Refresh the list
           setIsDialogOpen(false)
@@ -319,25 +319,15 @@ export default function VinFastProductionPage() {
   }
 
   const handleEdit = (product: Product) => {
-    console.log('🚨 EDIT BUTTON CLICKED - handleEdit called')
-    console.log('✏️ Editing product:', product.name)
-    console.log('📝 Original product data:', product)
-
     setEditingProduct(product)
-
     // Parse color variants from JSON string
     let parsedColorVariants: Record<string, string[]> = {}
     try {
       if (product.color_variants) {
-        console.log('🔄 Parsing color_variants:', product.color_variants)
         parsedColorVariants = JSON.parse(product.color_variants)
-        console.log('✅ Parsed colorVariants:', parsedColorVariants)
-      } else {
-        console.log('⚠️ No color_variants found in product')
       }
     } catch (error) {
       console.error('❌ Error parsing color_variants:', error)
-      console.log('📄 Raw color_variants data:', product.color_variants)
     }
 
     // If no color variants but has colors, create basic structure
@@ -360,12 +350,9 @@ export default function VinFastProductionPage() {
 
     // Ensure at least one color exists
     if (Object.keys(parsedColorVariants).length === 0) {
-      console.log('⚙️ No colors found, setting default color')
       parsedColorVariants = { 'Trắng': [] }
     }
 
-    console.log('🎯 Final parsedColorVariants for editing:', parsedColorVariants)
-    console.log('🎯 Setting colorVariants state to:', parsedColorVariants)
 
     setColorVariants(parsedColorVariants)
 
@@ -392,9 +379,7 @@ export default function VinFastProductionPage() {
       priority: product.priority
     })
 
-    console.log('🚪 About to open dialog - setIsDialogOpen(true)')
     setIsDialogOpen(true)
-    console.log('🚪 Dialog should be open now, isDialogOpen will be:', true)
   }
 
   const handleDelete = (product: Product) => {

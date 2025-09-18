@@ -166,7 +166,7 @@ export const useConfirmationDialog = () => {
     } finally {
       setDialogState(prev => ({ ...prev, isLoading: false }))
     }
-  }, [dialogState.onConfirm, dialogState, closeDialog])
+  }, [dialogState, closeDialog])
 
   const ConfirmationDialogComponent = React.useCallback(() => (
     <ConfirmationDialog

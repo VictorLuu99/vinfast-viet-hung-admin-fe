@@ -4,7 +4,6 @@ import * as React from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import {
   Car,
@@ -12,8 +11,6 @@ import {
   MessageSquare,
   Briefcase,
   Users,
-  Search,
-  Bell,
   Settings,
   User,
   LogOut,
