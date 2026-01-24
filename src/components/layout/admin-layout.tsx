@@ -75,6 +75,12 @@ const menuItems = [
     label: 'Quản lý Hero',
     icon: Image,
     href: '/dashboard/hero'
+  },
+  {
+    id: 'banners',
+    label: 'Quản lý Banners',
+    icon: Image,
+    href: '/dashboard/banners'
   }
 ]
 

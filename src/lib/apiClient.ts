@@ -383,6 +383,39 @@ export class ApiClient {
     })
   }
 
+  // VinFast Banners methods (Vietnamese-only)
+  async getBanners(params?: { page?: number; limit?: number }) {
+    const searchParams = new URLSearchParams()
+    if (params?.page) searchParams.set('page', params.page.toString())
+    if (params?.limit) searchParams.set('limit', params.limit.toString())
+
+    return this.request(`/api/banners/admin?${searchParams}`)
+  }
+
+  async getBanner(id: string) {
+    return this.request(`/api/banners/admin/${id}`)
+  }
+
+  async createBanner(data: Record<string, unknown>) {
+    return this.request('/api/banners/admin', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async updateBanner(id: string, data: Record<string, unknown>) {
+    return this.request(`/api/banners/admin/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  }
+
+  async deleteBanner(id: string) {
+    return this.request(`/api/banners/admin/${id}`, {
+      method: 'DELETE'
+    })
+  }
+
   // File upload method
   async uploadFile(file: File): Promise<{ success: boolean; data: unknown }> {
     const formData = new FormData()
