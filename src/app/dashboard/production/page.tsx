@@ -42,6 +42,7 @@ import { apiClient } from '@/lib/utils'
 import { useToast, toast } from '@/components/ui/toast'
 import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
 import { ImageGallery } from '@/components/ui/image-gallery'
+import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
 
 interface Product {
   id: number
@@ -546,13 +547,11 @@ export default function VinFastProductionPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Mô tả *</Label>
-                <Textarea
-                  id="description"
+                <ReactQuillEditor
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(content) => setFormData({ ...formData, description: content })}
                   placeholder="Mô tả chi tiết sản phẩm..."
-                  rows={4}
+                  label="Mô tả chi tiết"
                   required
                 />
               </div>

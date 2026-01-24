@@ -2,6 +2,7 @@
 
 import React, { useMemo, useEffect, useRef } from 'react'
 import { Label } from '@/components/ui/label'
+import { apiClient } from '@/lib/utils'
 
 // Import Quill CSS
 import 'react-quill/dist/quill.snow.css'
@@ -14,6 +15,7 @@ interface ReactQuillEditorProps {
   label?: string
   required?: boolean
   className?: string
+  onImageUpload?: (file: File) => Promise<string>
 }
 
 export function ReactQuillEditor({
@@ -23,7 +25,8 @@ export function ReactQuillEditor({
   disabled = false,
   label,
   required = false,
-  className = ''
+  className = '',
+  onImageUpload
 }: ReactQuillEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,6 +82,49 @@ export function ReactQuillEditor({
         // Set initial value
         if (value) {
           quillInstance.current.clipboard.dangerouslyPasteHTML(value)
+        }
+
+        // Configure image upload handler
+        if (onImageUpload || apiClient) {
+          const toolbar = quillInstance.current.getModule('toolbar')
+          toolbar.addHandler('image', async () => {
+            const input = document.createElement('input')
+            input.setAttribute('type', 'file')
+            input.setAttribute('accept', 'image/*')
+            input.click()
+
+            input.onchange = async () => {
+              const file = input.files?.[0]
+              if (!file) return
+
+              const range = quillInstance.current.getSelection(true)
+              quillInstance.current.insertText(range.index, 'Đang tải ảnh...', 'user')
+              quillInstance.current.setSelection(range.index + 15)
+
+              try {
+                let imageUrl: string
+                if (onImageUpload) {
+                  imageUrl = await onImageUpload(file)
+                } else {
+                  // Use default apiClient upload
+                  const result = await apiClient.uploadEditorFile(file, file.name) as { success: boolean; data: { url: string } }
+                  if (result.success && result.data?.url) {
+                    imageUrl = result.data.url
+                  } else {
+                    throw new Error('Upload failed')
+                  }
+                }
+
+                quillInstance.current.deleteText(range.index, 15)
+                quillInstance.current.insertEmbed(range.index, 'image', imageUrl, 'user')
+                quillInstance.current.setSelection(range.index + 1)
+              } catch (error) {
+                quillInstance.current.deleteText(range.index, 15)
+                console.error('Image upload failed:', error)
+                alert('Không thể tải ảnh. Vui lòng thử lại.')
+              }
+            }
+          })
         }
 
         // Listen for changes
