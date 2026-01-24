@@ -371,6 +371,18 @@ export class ApiClient {
     return this.request('/health')
   }
 
+  // VinFast Hero Section methods (Vietnamese-only)
+  async getHero() {
+    return this.request('/api/hero/admin')
+  }
+
+  async updateHero(data: Record<string, unknown>) {
+    return this.request('/api/hero/admin', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  }
+
   // File upload method
   async uploadFile(file: File): Promise<{ success: boolean; data: unknown }> {
     const formData = new FormData()

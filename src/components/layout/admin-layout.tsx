@@ -19,7 +19,8 @@ import {
   LayoutDashboard,
   Zap,
   Factory,
-  Tags
+  Tags,
+  Image
 } from 'lucide-react'
 
 interface AdminLayoutProps {
@@ -68,6 +69,12 @@ const menuItems = [
     label: 'Ứng viên',
     icon: Users,
     href: '/dashboard/candidates'
+  },
+  {
+    id: 'hero',
+    label: 'Quản lý Hero',
+    icon: Image,
+    href: '/dashboard/hero'
   }
 ]
 
