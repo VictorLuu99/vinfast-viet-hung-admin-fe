@@ -27,7 +27,7 @@ export default function HomePage() {
           <Building className="w-8 h-8 text-white" />
         </div>
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Huang Shan Global</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">VinFast VietHung</h1>
           <p className="text-gray-600">Admin Panel Loading...</p>
         </div>
         <Loader2 className="h-8 w-8 animate-spin text-teal-600 mx-auto" />

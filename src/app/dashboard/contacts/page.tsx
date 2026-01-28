@@ -379,9 +379,9 @@ export default function ContactsPage() {
                                 {selectedContact.message && (
                                   <div>
                                     <Label className="text-sm font-medium">
-                                      Message
+                                      Thông tin đăng ký
                                     </Label>
-                                    <div className="mt-1 p-3 bg-muted rounded-md min-h-[100px]">
+                                    <div className="mt-1 p-3 bg-muted rounded-md min-h-[100px] whitespace-pre-line">
                                       {selectedContact.message}
                                     </div>
                                   </div>
