@@ -67,6 +67,9 @@ interface Product {
   badge?: string
   available: number
   priority: number
+  meta_title?: string | null
+  meta_description?: string | null
+  keywords?: string | null
   created_at: string
   updated_at: string
 }
@@ -115,7 +118,10 @@ export default function VinFastProductionPage() {
     storage_liters: 0,
     badge: '',
     available: 1,
-    priority: 0
+    priority: 0,
+    meta_title: '',
+    meta_description: '',
+    keywords: ''
   })
 
   // Fetch categories from API
@@ -203,7 +209,10 @@ export default function VinFastProductionPage() {
       storage_liters: 0,
       badge: '',
       available: 1,
-      priority: 0
+      priority: 0,
+      meta_title: '',
+      meta_description: '',
+      keywords: ''
     })
     setColorVariants({ 'Trắng': [] })
     setEditingProduct(null)
@@ -377,7 +386,10 @@ export default function VinFastProductionPage() {
       storage_liters: product.storage_liters || 0,
       badge: product.badge || '',
       available: product.available,
-      priority: product.priority
+      priority: product.priority,
+      meta_title: product.meta_title ?? '',
+      meta_description: product.meta_description ?? '',
+      keywords: product.keywords ?? ''
     })
 
     setIsDialogOpen(true)
@@ -554,6 +566,39 @@ export default function VinFastProductionPage() {
                   label="Mô tả chi tiết"
                   required
                 />
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-3">
+                <h4 className="text-sm font-semibold text-gray-900">SEO (tìm kiếm & chia sẻ)</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="meta_title">Tiêu đề SEO</Label>
+                  <Input
+                    id="meta_title"
+                    value={formData.meta_title}
+                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                    placeholder="VD: VinFast Klara | Xe máy điện chính hãng - VinFast Việt Hùng"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="meta_description">Mô tả SEO</Label>
+                  <Textarea
+                    id="meta_description"
+                    value={formData.meta_description}
+                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                    placeholder="1-2 câu có từ khóa VinFast, xe máy điện, Việt Hùng, Vĩnh Phúc"
+                    rows={2}
+                    className="resize-none"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="keywords">Từ khóa (cách nhau dấu phẩy)</Label>
+                  <Input
+                    id="keywords"
+                    value={formData.keywords}
+                    onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                    placeholder="VinFast Klara, xe máy điện, VinFast Việt Hùng, xe máy điện học sinh"
+                  />
+                </div>
               </div>
 
               {/* Color Variants and Image Gallery */}

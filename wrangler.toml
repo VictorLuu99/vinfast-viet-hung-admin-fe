@@ -6,7 +6,7 @@ pages_build_output_dir = "out"
 
 # Environment variables for build time
 [vars]
-NEXT_PUBLIC_API_URL = "https://vinfast-viethung-api.xox-labs-server.workers.dev"
+NEXT_PUBLIC_API_URL = "https://api.vinfastxemaydien.com"
 
 # Custom headers for performance
 [[headers]]

@@ -49,6 +49,9 @@ interface NewsArticle {
   featured_image?: string
   category: string
   published: number
+  meta_title?: string | null
+  meta_description?: string | null
+  keywords?: string | null
   created_at: string
   updated_at: string
 }
@@ -81,7 +84,10 @@ export default function VinFastNewsPage() {
     excerpt: '',
     featured_image: '',
     category: 'tin-cong-ty',
-    published: 0
+    published: 0,
+    meta_title: '',
+    meta_description: '',
+    keywords: ''
   })
 
   // Fetch articles from API
@@ -138,7 +144,10 @@ export default function VinFastNewsPage() {
             excerpt: '',
             featured_image: '',
             category: 'tin-cong-ty',
-            published: 0
+            published: 0,
+            meta_title: '',
+            meta_description: '',
+            keywords: ''
           })
           setUploadError(null)
         } else {
@@ -160,7 +169,10 @@ export default function VinFastNewsPage() {
             excerpt: '',
             featured_image: '',
             category: 'tin-cong-ty',
-            published: 0
+            published: 0,
+            meta_title: '',
+            meta_description: '',
+            keywords: ''
           })
           setUploadError(null)
         } else {
@@ -187,7 +199,10 @@ export default function VinFastNewsPage() {
       excerpt: article.excerpt || '',
       featured_image: article.featured_image || '',
       category: article.category,
-      published: article.published
+      published: article.published,
+      meta_title: article.meta_title ?? '',
+      meta_description: article.meta_description ?? '',
+      keywords: article.keywords ?? ''
     })
     setUploadError(null)
     setIsDialogOpen(true)
@@ -255,7 +270,10 @@ export default function VinFastNewsPage() {
               excerpt: '',
               featured_image: '',
               category: 'tin-cong-ty',
-              published: 0
+              published: 0,
+              meta_title: '',
+              meta_description: '',
+              keywords: ''
             })
             // Clear form and errors when dialog closes
             setUploadError(null)
@@ -331,6 +349,38 @@ export default function VinFastNewsPage() {
                   placeholder="Mô tả ngắn gọn về bài viết"
                   rows={2}
                 />
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-3">
+                <h4 className="text-sm font-semibold text-gray-900">SEO (tìm kiếm & chia sẻ)</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="meta_title">Tiêu đề SEO</Label>
+                  <Input
+                    id="meta_title"
+                    value={formData.meta_title}
+                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                    placeholder="VD: Khuyến mãi tháng 3 | VinFast Việt Hùng"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="meta_description">Mô tả SEO</Label>
+                  <Textarea
+                    id="meta_description"
+                    value={formData.meta_description}
+                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                    placeholder="1-2 câu tóm tắt có từ khóa VinFast, xe máy điện, Việt Hùng"
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="keywords">Từ khóa (cách nhau dấu phẩy)</Label>
+                  <Input
+                    id="keywords"
+                    value={formData.keywords}
+                    onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                    placeholder="VinFast, xe máy điện, Việt Hùng, khuyến mãi"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
