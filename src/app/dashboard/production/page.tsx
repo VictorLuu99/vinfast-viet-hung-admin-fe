@@ -44,6 +44,8 @@ import { useConfirmationDialog, confirmations } from '@/components/ui/confirmati
 import { ImageGallery } from '@/components/ui/image-gallery'
 import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
 import { SeoScorePanel } from '@/components/seo/SeoScorePanel'
+import { MetaLengthHint } from '@/components/seo/MetaLengthHint'
+import { GooglePreviewSnippet } from '@/components/seo/GooglePreviewSnippet'
 
 interface Product {
   id: number
@@ -581,6 +583,7 @@ export default function VinFastProductionPage() {
                     onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
                     placeholder="VD: VinFast Klara | Xe máy điện chính hãng - VinFast Việt Hùng"
                   />
+                  <MetaLengthHint value={formData.meta_title} type="title" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="meta_description">Mô tả SEO</Label>
@@ -592,6 +595,7 @@ export default function VinFastProductionPage() {
                     rows={2}
                     className="resize-none"
                   />
+                  <MetaLengthHint value={formData.meta_description} type="description" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="keywords">Từ khóa (cách nhau dấu phẩy)</Label>
@@ -602,6 +606,11 @@ export default function VinFastProductionPage() {
                     placeholder="VinFast Klara, xe máy điện, VinFast Việt Hùng, xe máy điện học sinh"
                   />
                 </div>
+                <GooglePreviewSnippet
+                  title={formData.meta_title || formData.name}
+                  description={formData.meta_description || formData.tagline}
+                  path={editingProduct?.slug ? `/products/${editingProduct.slug}` : `/products/${formData.name.trim() ? formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\u00C0-\u024F-]/gi, '').slice(0, 80) : 'san-pham'}`}
+                />
               </div>
 
               {/* Color Variants and Image Gallery */}

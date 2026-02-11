@@ -41,10 +41,13 @@ import { useConfirmationDialog, confirmations } from '@/components/ui/confirmati
 import { FileUpload } from '@/components/ui/file-upload'
 import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
 import { SeoScorePanel } from '@/components/seo/SeoScorePanel'
+import { MetaLengthHint } from '@/components/seo/MetaLengthHint'
+import { GooglePreviewSnippet } from '@/components/seo/GooglePreviewSnippet'
 
 interface NewsArticle {
   id: number
   title: string
+  slug?: string
   content: string
   excerpt?: string
   featured_image?: string
@@ -362,6 +365,7 @@ export default function VinFastNewsPage() {
                     onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
                     placeholder="VD: Khuyến mãi tháng 3 | VinFast Việt Hùng"
                   />
+                  <MetaLengthHint value={formData.meta_title} type="title" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="meta_description">Mô tả SEO</Label>
@@ -372,6 +376,7 @@ export default function VinFastNewsPage() {
                     placeholder="1-2 câu tóm tắt có từ khóa VinFast, xe máy điện, Việt Hùng"
                     rows={2}
                   />
+                  <MetaLengthHint value={formData.meta_description} type="description" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="keywords">Từ khóa (cách nhau dấu phẩy)</Label>
@@ -382,6 +387,11 @@ export default function VinFastNewsPage() {
                     placeholder="VinFast, xe máy điện, Việt Hùng, khuyến mãi"
                   />
                 </div>
+                <GooglePreviewSnippet
+                  title={formData.meta_title || formData.title}
+                  description={formData.meta_description || formData.excerpt}
+                  path={editingArticle?.slug ? `/news/${editingArticle.slug}` : `/news/${formData.title.trim() ? formData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\u00C0-\u024F-]/gi, '').slice(0, 80) : 'tin-tuc'}`}
+                />
               </div>
 
               <div className="space-y-2">
