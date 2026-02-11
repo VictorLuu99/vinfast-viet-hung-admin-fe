@@ -43,6 +43,7 @@ import { useToast, toast } from '@/components/ui/toast'
 import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
 import { ImageGallery } from '@/components/ui/image-gallery'
 import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
+import { SeoScorePanel } from '@/components/seo/SeoScorePanel'
 
 interface Product {
   id: number
@@ -94,6 +95,7 @@ export default function VinFastProductionPage() {
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [colorVariants, setColorVariants] = React.useState<Record<string, string[]>>({ 'Trắng': [] })
+  const [focusKeyword, setFocusKeyword] = React.useState('')
   const { showToast } = useToast()
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog()
 
@@ -215,6 +217,7 @@ export default function VinFastProductionPage() {
       keywords: ''
     })
     setColorVariants({ 'Trắng': [] })
+    setFocusKeyword('')
     setEditingProduct(null)
   }
 
@@ -733,6 +736,19 @@ export default function VinFastProductionPage() {
                   />
                 </div>
               </div>
+
+              <SeoScorePanel
+                type="product"
+                formValues={{
+                  h1Title: formData.name,
+                  contentHtml: formData.description,
+                  metaTitle: formData.meta_title,
+                  metaDescription: formData.meta_description,
+                  keywords: formData.keywords
+                }}
+                focusKeyword={focusKeyword}
+                onFocusKeywordChange={setFocusKeyword}
+              />
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>

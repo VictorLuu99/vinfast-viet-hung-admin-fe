@@ -40,6 +40,7 @@ import { useToast, toast } from '@/components/ui/toast'
 import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
 import { FileUpload } from '@/components/ui/file-upload'
 import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
+import { SeoScorePanel } from '@/components/seo/SeoScorePanel'
 
 interface NewsArticle {
   id: number
@@ -74,6 +75,7 @@ export default function VinFastNewsPage() {
   const [editingArticle, setEditingArticle] = React.useState<NewsArticle | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [uploadError, setUploadError] = React.useState<string | null>(null)
+  const [focusKeyword, setFocusKeyword] = React.useState('')
   const { showToast } = useToast()
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog()
 
@@ -275,10 +277,9 @@ export default function VinFastNewsPage() {
               meta_description: '',
               keywords: ''
             })
-            // Clear form and errors when dialog closes
+            setFocusKeyword('')
             setUploadError(null)
             setError(null)
-            
           }
         }}>
           <DialogTrigger asChild>
@@ -415,6 +416,20 @@ export default function VinFastNewsPage() {
                   disabled={isSubmitting}
                 />
               </div>
+
+              <SeoScorePanel
+                type="news"
+                formValues={{
+                  h1Title: formData.title,
+                  contentHtml: formData.content,
+                  metaTitle: formData.meta_title,
+                  metaDescription: formData.meta_description,
+                  keywords: formData.keywords,
+                  featuredImageUrl: formData.featured_image || undefined
+                }}
+                focusKeyword={focusKeyword}
+                onFocusKeywordChange={setFocusKeyword}
+              />
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
