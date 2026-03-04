@@ -307,7 +307,7 @@ export default function VinFastNewsPage() {
                 <Input
                   id="title"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="Nhập tiêu đề bài viết"
                   required
                 />
@@ -316,7 +316,7 @@ export default function VinFastNewsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">Danh mục *</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <Select value={formData.category} onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn danh mục" />
                     </SelectTrigger>
@@ -332,7 +332,7 @@ export default function VinFastNewsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="published">Trạng thái</Label>
-                  <Select value={formData.published.toString()} onValueChange={(value) => setFormData({ ...formData, published: parseInt(value) })}>
+                  <Select value={formData.published.toString()} onValueChange={(value) => setFormData((prev) => ({ ...prev, published: parseInt(value) }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -349,7 +349,7 @@ export default function VinFastNewsPage() {
                 <Textarea
                   id="excerpt"
                   value={formData.excerpt}
-                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, excerpt: e.target.value }))}
                   placeholder="Mô tả ngắn gọn về bài viết"
                   rows={2}
                 />
@@ -362,7 +362,7 @@ export default function VinFastNewsPage() {
                   <Input
                     id="meta_title"
                     value={formData.meta_title}
-                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, meta_title: e.target.value }))}
                     placeholder="VD: Khuyến mãi tháng 3 | VinFast Việt Hùng"
                   />
                   <MetaLengthHint value={formData.meta_title} type="title" />
@@ -372,7 +372,7 @@ export default function VinFastNewsPage() {
                   <Textarea
                     id="meta_description"
                     value={formData.meta_description}
-                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, meta_description: e.target.value }))}
                     placeholder="1-2 câu tóm tắt có từ khóa VinFast, xe máy điện, Việt Hùng"
                     rows={2}
                   />
@@ -383,7 +383,7 @@ export default function VinFastNewsPage() {
                   <Input
                     id="keywords"
                     value={formData.keywords}
-                    onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, keywords: e.target.value }))}
                     placeholder="VinFast, xe máy điện, Việt Hùng, khuyến mãi"
                   />
                 </div>
@@ -399,7 +399,7 @@ export default function VinFastNewsPage() {
                 <FileUpload
                   value={formData.featured_image}
                   onChange={(url) => {
-                    setFormData({ ...formData, featured_image: url })
+                    setFormData((prev) => ({ ...prev, featured_image: url }))
                     setUploadError(null) // Clear error on successful upload
                   }}
                   onError={(error) => {

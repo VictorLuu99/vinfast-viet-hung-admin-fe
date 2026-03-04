@@ -492,7 +492,7 @@ export default function VinFastProductionPage() {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="Nhập tên sản phẩm"
                     required
                   />
@@ -500,7 +500,7 @@ export default function VinFastProductionPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Danh mục *</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <Select value={formData.category} onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn danh mục" />
                     </SelectTrigger>
@@ -522,7 +522,7 @@ export default function VinFastProductionPage() {
                     id="price"
                     type="number"
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, price: parseInt(e.target.value) || 0 }))}
                     placeholder="0"
                     required
                   />
@@ -534,7 +534,7 @@ export default function VinFastProductionPage() {
                     id="original_price"
                     type="number"
                     value={formData.original_price}
-                    onChange={(e) => setFormData({ ...formData, original_price: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, original_price: parseInt(e.target.value) || 0 }))}
                     placeholder="0"
                   />
                 </div>
@@ -545,7 +545,7 @@ export default function VinFastProductionPage() {
                     id="discount"
                     type="number"
                     value={formData.discount}
-                    onChange={(e) => setFormData({ ...formData, discount: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, discount: parseInt(e.target.value) || 0 }))}
                     placeholder="0"
                     min="0"
                     max="100"
@@ -558,7 +558,7 @@ export default function VinFastProductionPage() {
                 <Input
                   id="tagline"
                   value={formData.tagline}
-                  onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, tagline: e.target.value }))}
                   placeholder="Slogan sản phẩm"
                 />
               </div>
@@ -566,7 +566,7 @@ export default function VinFastProductionPage() {
               <div className="space-y-2">
                 <ReactQuillEditor
                   value={formData.description}
-                  onChange={(content) => setFormData({ ...formData, description: content })}
+                  onChange={(content) => setFormData((prev) => ({ ...prev, description: content }))}
                   placeholder="Mô tả chi tiết sản phẩm..."
                   label="Mô tả chi tiết"
                   required
@@ -580,7 +580,7 @@ export default function VinFastProductionPage() {
                   <Input
                     id="meta_title"
                     value={formData.meta_title}
-                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, meta_title: e.target.value }))}
                     placeholder="VD: VinFast Klara | Xe máy điện chính hãng - VinFast Việt Hùng"
                   />
                   <MetaLengthHint value={formData.meta_title} type="title" />
@@ -590,7 +590,7 @@ export default function VinFastProductionPage() {
                   <Textarea
                     id="meta_description"
                     value={formData.meta_description}
-                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, meta_description: e.target.value }))}
                     placeholder="1-2 câu có từ khóa VinFast, xe máy điện, Việt Hùng, Vĩnh Phúc"
                     rows={2}
                     className="resize-none"
@@ -602,7 +602,7 @@ export default function VinFastProductionPage() {
                   <Input
                     id="keywords"
                     value={formData.keywords}
-                    onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, keywords: e.target.value }))}
                     placeholder="VinFast Klara, xe máy điện, VinFast Việt Hùng, xe máy điện học sinh"
                   />
                 </div>
@@ -635,7 +635,7 @@ export default function VinFastProductionPage() {
                     id="range_km"
                     type="number"
                     value={formData.range_km}
-                    onChange={(e) => setFormData({ ...formData, range_km: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, range_km: parseInt(e.target.value) || 0 }))}
                     placeholder="80"
                   />
                 </div>
@@ -646,7 +646,7 @@ export default function VinFastProductionPage() {
                     id="power_w"
                     type="number"
                     value={formData.power_w}
-                    onChange={(e) => setFormData({ ...formData, power_w: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, power_w: parseInt(e.target.value) || 0 }))}
                     placeholder="1200"
                   />
                 </div>
@@ -657,7 +657,7 @@ export default function VinFastProductionPage() {
                     id="max_speed_kmh"
                     type="number"
                     value={formData.max_speed_kmh}
-                    onChange={(e) => setFormData({ ...formData, max_speed_kmh: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, max_speed_kmh: parseInt(e.target.value) || 0 }))}
                     placeholder="45"
                   />
                 </div>
@@ -670,7 +670,7 @@ export default function VinFastProductionPage() {
                     id="weight_kg"
                     type="number"
                     value={formData.weight_kg}
-                    onChange={(e) => setFormData({ ...formData, weight_kg: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, weight_kg: parseInt(e.target.value) || 0 }))}
                     placeholder="80"
                   />
                 </div>
@@ -680,7 +680,7 @@ export default function VinFastProductionPage() {
                   <Input
                     id="charging_time"
                     value={formData.charging_time}
-                    onChange={(e) => setFormData({ ...formData, charging_time: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, charging_time: e.target.value }))}
                     placeholder="4-6 giờ"
                   />
                 </div>
@@ -691,7 +691,7 @@ export default function VinFastProductionPage() {
                     id="storage_liters"
                     type="number"
                     value={formData.storage_liters}
-                    onChange={(e) => setFormData({ ...formData, storage_liters: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, storage_liters: parseInt(e.target.value) || 0 }))}
                     placeholder="25"
                   />
                 </div>
@@ -703,7 +703,7 @@ export default function VinFastProductionPage() {
                   <Input
                     id="battery_type"
                     value={formData.battery_type}
-                    onChange={(e) => setFormData({ ...formData, battery_type: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, battery_type: e.target.value }))}
                     placeholder="Lithium-ion"
                   />
                 </div>
@@ -713,7 +713,7 @@ export default function VinFastProductionPage() {
                   <Input
                     id="badge"
                     value={formData.badge}
-                    onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, badge: e.target.value }))}
                     placeholder="Mới, Phổ biến, Bán chạy"
                   />
                 </div>
@@ -722,7 +722,7 @@ export default function VinFastProductionPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="available">Trạng thái</Label>
-                  <Select value={formData.available.toString()} onValueChange={(value) => setFormData({ ...formData, available: parseInt(value) })}>
+                  <Select value={formData.available.toString()} onValueChange={(value) => setFormData((prev) => ({ ...prev, available: parseInt(value) }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -739,7 +739,7 @@ export default function VinFastProductionPage() {
                     id="priority"
                     type="number"
                     value={formData.priority}
-                    onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
                     placeholder="0"
                     min="0"
                   />
