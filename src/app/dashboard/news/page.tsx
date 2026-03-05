@@ -1,22 +1,11 @@
 'use client'
 
 import * as React from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
@@ -25,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   FileText,
   Plus,
@@ -33,16 +23,10 @@ import {
   Trash2,
   Calendar,
   Tag,
-  Save,
 } from 'lucide-react'
 import { apiClient } from '@/lib/utils'
 import { useToast, toast } from '@/components/ui/toast'
 import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
-import { FileUpload } from '@/components/ui/file-upload'
-import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
-import { SeoScorePanel } from '@/components/seo/SeoScorePanel'
-import { MetaLengthHint } from '@/components/seo/MetaLengthHint'
-import { GooglePreviewSnippet } from '@/components/seo/GooglePreviewSnippet'
 
 interface NewsArticle {
   id: number
@@ -74,28 +58,9 @@ export default function VinFastNewsPage() {
   const [error, setError] = React.useState<string | null>(null)
   const [searchTerm, setSearchTerm] = React.useState('')
   const [selectedCategory, setSelectedCategory] = React.useState<string>('all')
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
-  const [editingArticle, setEditingArticle] = React.useState<NewsArticle | null>(null)
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [uploadError, setUploadError] = React.useState<string | null>(null)
-  const [focusKeyword, setFocusKeyword] = React.useState('')
   const { showToast } = useToast()
   const { showConfirmation, ConfirmationDialog } = useConfirmationDialog()
 
-  // Form state
-  const [formData, setFormData] = React.useState({
-    title: '',
-    content: '',
-    excerpt: '',
-    featured_image: '',
-    category: 'tin-cong-ty',
-    published: 0,
-    meta_title: '',
-    meta_description: '',
-    keywords: ''
-  })
-
-  // Fetch articles from API
   const fetchArticles = React.useCallback(async () => {
     try {
       setIsLoading(true)
@@ -103,7 +68,7 @@ export default function VinFastNewsPage() {
 
       const response = await apiClient.getNews({
         page: 1,
-        limit: 100  // Get all articles for admin view
+        limit: 100
       })
 
       if (response.success) {
@@ -113,8 +78,8 @@ export default function VinFastNewsPage() {
         setError(errorMsg)
         showToast(toast.error('Lỗi tải dữ liệu', errorMsg))
       }
-    } catch (error) {
-      console.error('Error fetching news:', error)
+    } catch (err) {
+      console.error('Error fetching news:', err)
       const errorMsg = 'Có lỗi xảy ra khi tải tin tức'
       setError(errorMsg)
       showToast(toast.error('Lỗi hệ thống', errorMsg))
@@ -127,92 +92,6 @@ export default function VinFastNewsPage() {
     fetchArticles()
   }, [fetchArticles])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    try {
-      setIsSubmitting(true)
-      setError(null)
-
-      if (editingArticle) {
-        // Update existing article
-        const response = await apiClient.updateNews(editingArticle.id.toString(), formData)
-
-        if (response.success) {
-          showToast(toast.success('Cập nhật thành công', 'Tin tức đã được cập nhật'))
-          await fetchArticles() // Refresh the list
-          setIsDialogOpen(false)
-          setEditingArticle(null)
-          setFormData({
-            title: '',
-            content: '',
-            excerpt: '',
-            featured_image: '',
-            category: 'tin-cong-ty',
-            published: 0,
-            meta_title: '',
-            meta_description: '',
-            keywords: ''
-          })
-          setUploadError(null)
-        } else {
-          const errorMsg = 'Không thể cập nhật tin tức'
-          setError(errorMsg)
-          showToast(toast.error('Lỗi cập nhật', errorMsg))
-        }
-      } else {
-        // Create new article
-        const response = await apiClient.createNews(formData)
-
-        if (response.success) {
-          showToast(toast.success('Tạo thành công', 'Tin tức mới đã được tạo'))
-          await fetchArticles() // Refresh the list
-          setIsDialogOpen(false)
-          setFormData({
-            title: '',
-            content: '',
-            excerpt: '',
-            featured_image: '',
-            category: 'tin-cong-ty',
-            published: 0,
-            meta_title: '',
-            meta_description: '',
-            keywords: ''
-          })
-          setUploadError(null)
-        } else {
-          const errorMsg = 'Không thể tạo tin tức'
-          setError(errorMsg)
-          showToast(toast.error('Lỗi tạo mới', errorMsg))
-        }
-      }
-    } catch (error) {
-      console.error('Error submitting news:', error)
-      const errorMsg = 'Có lỗi xảy ra khi lưu tin tức'
-      setError(errorMsg)
-      showToast(toast.error('Lỗi hệ thống', errorMsg))
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleEdit = (article: NewsArticle) => {
-    setEditingArticle(article)
-    setFormData({
-      title: article.title,
-      content: article.content,
-      excerpt: article.excerpt || '',
-      featured_image: article.featured_image || '',
-      category: article.category,
-      published: article.published,
-      meta_title: article.meta_title ?? '',
-      meta_description: article.meta_description ?? '',
-      keywords: article.keywords ?? ''
-    })
-    setUploadError(null)
-    setIsDialogOpen(true)
-  }
-
   const handleDelete = (article: NewsArticle) => {
     showConfirmation(confirmations.delete(article.title, async () => {
       try {
@@ -221,14 +100,14 @@ export default function VinFastNewsPage() {
 
         if (response.success) {
           showToast(toast.success('Xóa thành công', 'Tin tức đã được xóa'))
-          await fetchArticles() // Refresh the list
+          await fetchArticles()
         } else {
           const errorMsg = 'Không thể xóa tin tức'
           setError(errorMsg)
           showToast(toast.error('Lỗi xóa', errorMsg))
         }
-      } catch (error) {
-        console.error('Error deleting news:', error)
+      } catch (err) {
+        console.error('Error deleting news:', err)
         const errorMsg = 'Có lỗi xảy ra khi xóa tin tức'
         setError(errorMsg)
         showToast(toast.error('Lỗi hệ thống', errorMsg))
@@ -259,216 +138,19 @@ export default function VinFastNewsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Quản lý tin tức</h2>
           <p className="text-gray-600">Quản lý tin tức và thông báo của VinFast VietHung</p>
         </div>
-
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open)
-          if (!open) {
-            setFormData({
-              title: '',
-              content: '',
-              excerpt: '',
-              featured_image: '',
-              category: 'tin-cong-ty',
-              published: 0,
-              meta_title: '',
-              meta_description: '',
-              keywords: ''
-            })
-            setFocusKeyword('')
-            setUploadError(null)
-            setError(null)
-          }
-        }}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Tạo tin tức
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingArticle ? 'Chỉnh sửa tin tức' : 'Tạo tin tức mới'}
-              </DialogTitle>
-              <DialogDescription>
-                {editingArticle ? 'Cập nhật thông tin bài viết' : 'Tạo bài viết mới cho VinFast VietHung'}
-              </DialogDescription>
-            </DialogHeader>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Tiêu đề *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                  placeholder="Nhập tiêu đề bài viết"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Danh mục *</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn danh mục" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {vietnameseCategories.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="published">Trạng thái</Label>
-                  <Select value={formData.published.toString()} onValueChange={(value) => setFormData((prev) => ({ ...prev, published: parseInt(value) }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">Bản nháp</SelectItem>
-                      <SelectItem value="1">Đã xuất bản</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="excerpt">Mô tả ngắn</Label>
-                <Textarea
-                  id="excerpt"
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, excerpt: e.target.value }))}
-                  placeholder="Mô tả ngắn gọn về bài viết"
-                  rows={2}
-                />
-              </div>
-
-              <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-4 space-y-3">
-                <h4 className="text-sm font-semibold text-gray-900">SEO (tìm kiếm & chia sẻ)</h4>
-                <div className="space-y-2">
-                  <Label htmlFor="meta_title">Tiêu đề SEO</Label>
-                  <Input
-                    id="meta_title"
-                    value={formData.meta_title}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, meta_title: e.target.value }))}
-                    placeholder="VD: Khuyến mãi tháng 3 | VinFast Việt Hùng"
-                  />
-                  <MetaLengthHint value={formData.meta_title} type="title" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="meta_description">Mô tả SEO</Label>
-                  <Textarea
-                    id="meta_description"
-                    value={formData.meta_description}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, meta_description: e.target.value }))}
-                    placeholder="1-2 câu tóm tắt có từ khóa VinFast, xe máy điện, Việt Hùng"
-                    rows={2}
-                  />
-                  <MetaLengthHint value={formData.meta_description} type="description" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="keywords">Từ khóa (cách nhau dấu phẩy)</Label>
-                  <Input
-                    id="keywords"
-                    value={formData.keywords}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, keywords: e.target.value }))}
-                    placeholder="VinFast, xe máy điện, Việt Hùng, khuyến mãi"
-                  />
-                </div>
-                <GooglePreviewSnippet
-                  title={formData.meta_title || formData.title}
-                  description={formData.meta_description || formData.excerpt}
-                  path={editingArticle?.slug ? `/news/${editingArticle.slug}` : `/news/${formData.title.trim() ? formData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\u00C0-\u024F-]/gi, '').slice(0, 80) : 'tin-tuc'}`}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="featured_image">Ảnh đại diện</Label>
-                <FileUpload
-                  value={formData.featured_image}
-                  onChange={(url) => {
-                    setFormData((prev) => ({ ...prev, featured_image: url }))
-                    setUploadError(null) // Clear error on successful upload
-                  }}
-                  onError={(error) => {
-                    setUploadError(error)
-                    showToast(toast.error('Lỗi tải ảnh', error))
-                  }}
-                  accept="image/*"
-                  maxSize={5}
-                  placeholder="Chọn ảnh đại diện cho bài viết"
-                  disabled={isSubmitting}
-                />
-                {uploadError && (
-                  <p className="text-sm text-red-600">{uploadError}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <ReactQuillEditor
-                  value={formData.content}
-                  onChange={(content) => setFormData(prev => ({ ...prev, content }))}
-                  placeholder="Nhập nội dung bài viết..."
-                  label="Nội dung"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <SeoScorePanel
-                type="news"
-                formValues={{
-                  h1Title: formData.title,
-                  contentHtml: formData.content,
-                  metaTitle: formData.meta_title,
-                  metaDescription: formData.meta_description,
-                  keywords: formData.keywords,
-                  featuredImageUrl: formData.featured_image || undefined
-                }}
-                focusKeyword={focusKeyword}
-                onFocusKeywordChange={setFocusKeyword}
-              />
-
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Hủy
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      {editingArticle ? 'Đang cập nhật...' : 'Đang tạo...'}
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      {editingArticle ? 'Cập nhật' : 'Tạo mới'}
-                    </>
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Link href="/dashboard/news/new">
+          <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Tạo tin tức
+          </Button>
+        </Link>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -502,7 +184,6 @@ export default function VinFastNewsPage() {
         </CardContent>
       </Card>
 
-      {/* Articles Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -526,17 +207,15 @@ export default function VinFastNewsPage() {
                   <p className="text-sm text-red-800">{error}</p>
                 </div>
                 <div className="ml-auto pl-3">
-                  <div className="-mx-1.5 -my-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setError(null)}
-                      className="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100"
-                    >
-                      <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setError(null)}
+                    className="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100"
+                  >
+                    <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -544,7 +223,7 @@ export default function VinFastNewsPage() {
 
           {isLoading ? (
             <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
               <p className="text-gray-500 mt-2">Đang tải...</p>
             </div>
           ) : (
@@ -600,9 +279,11 @@ export default function VinFastNewsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center gap-2 justify-end">
-                          <Button size="sm" variant="outline" onClick={() => handleEdit(article)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <Link href={`/dashboard/news/edit?id=${article.id}`}>
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           <Button size="sm" variant="outline" onClick={() => handleDelete(article)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -629,7 +310,6 @@ export default function VinFastNewsPage() {
         </CardContent>
       </Card>
 
-      {/* Beautiful Confirmation Dialog */}
       <ConfirmationDialog />
     </div>
   )

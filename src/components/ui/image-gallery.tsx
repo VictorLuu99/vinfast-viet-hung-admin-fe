@@ -49,7 +49,7 @@ export function ImageGallery({
   // Use predefined colors if none provided
   const availableColors = colors && colors.length > 0 ? colors : DEFAULT_COLORS
 
-  // Convert value to ColorVariant format
+  // Convert value to ColorVariant format (same as main: use value as-is)
   const colorVariants: ColorVariant[] = React.useMemo(() => {
     const allColors = new Set([...Object.keys(value), ...availableColors])
     return Array.from(allColors).map(colorName => ({
@@ -118,15 +118,9 @@ export function ImageGallery({
   }
 
   const selectedColorImages = React.useMemo(() => {
-    if (!selectedColor) {
-      console.log('  - No selectedColor, returning empty array')
-      return []
-    }
-
+    if (!selectedColor) return []
     const images = value[selectedColor]
-    const result = Array.isArray(images) ? images : []
-
-    return result
+    return Array.isArray(images) ? images : []
   }, [selectedColor, value])
 
   return (

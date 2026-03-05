@@ -128,8 +128,6 @@ export function ColorTabs({
     }
   }
 
-  console.log("colors: ", colors);
-  
   return (
     <div className={cn('space-y-3', className)}>
       <div className="flex items-center gap-2 flex-wrap">
