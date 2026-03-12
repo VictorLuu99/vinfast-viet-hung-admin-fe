@@ -1,5 +1,6 @@
 import { AppDispatch, RootState } from '@/store'
 import { selectToken, refreshTokenAsync, forceLogout, updateActivity } from '@/store/authSlice'
+import { redirectToLogin as redirectToLoginShared, isAuthFailureError } from '@/lib/authRedirect'
 
 /**
  * VinFast VietHung API Client
@@ -10,14 +11,9 @@ import { selectToken, refreshTokenAsync, forceLogout, updateActivity } from '@/s
 // VinFast API Configuration
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.vinfastxemaydien.com'
 
-// Navigation helper for 401 redirects
 const redirectToLogin = () => {
   if (typeof window !== 'undefined') {
-    // Clear any existing tokens
-    localStorage.removeItem('admin-token')
-    document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
-    // Redirect to login page
-    window.location.href = '/login'
+    redirectToLoginShared()
   }
 }
 
@@ -110,6 +106,10 @@ export class ApiClient {
       }
 
       if (!response.ok) {
+        if (result.error && isAuthFailureError(new Error(String(result.error)))) {
+          if (this.dispatch) this.dispatch(forceLogout())
+          redirectToLogin()
+        }
         throw new Error(result.error || `HTTP ${response.status}`)
       }
 
@@ -120,7 +120,10 @@ export class ApiClient {
       return result
     } catch (error) {
       console.error('API request failed:', error)
-      
+      if (isAuthFailureError(error)) {
+        if (this.dispatch) this.dispatch(forceLogout())
+        redirectToLogin()
+      }
       // If it's a network error and we have retries left, try again
       if (this.retryAttempts < this.maxRetries && error instanceof TypeError) {
         this.retryAttempts++

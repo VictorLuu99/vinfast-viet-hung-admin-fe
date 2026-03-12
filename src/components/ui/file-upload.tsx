@@ -7,6 +7,7 @@ import { Progress } from './progress'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { apiClient } from '@/lib/apiClient'
+import { redirectToLogin, isAuthFailureError } from '@/lib/authRedirect'
 
 interface UploadResult {
   success: boolean
@@ -76,7 +77,8 @@ export function FileUpload({
 
       // Check if user is authenticated and has token
       if (!token) {
-        throw new Error('Không tìm thấy token xác thực')
+        redirectToLogin()
+        return
       }
 
       // Create preview URL immediately
@@ -111,6 +113,10 @@ export function FileUpload({
 
     } catch (error) {
       console.error('Upload error:', error)
+      if (isAuthFailureError(error)) {
+        redirectToLogin()
+        return
+      }
       const errorMessage = error instanceof Error ? error.message : 'Upload thất bại'
       onError?.(errorMessage)
 
