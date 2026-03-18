@@ -30,6 +30,7 @@ interface NewsArticle {
   meta_title?: string | null
   meta_description?: string | null
   keywords?: string | null
+  focus_keyword?: string | null
   created_at: string
   updated_at: string
 }
@@ -56,13 +57,13 @@ function NewsEditContent() {
     published: 0,
     meta_title: '',
     meta_description: '',
-    keywords: ''
+    keywords: '',
+    focus_keyword: ''
   })
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [uploadError, setUploadError] = React.useState<string | null>(null)
-  const [focusKeyword, setFocusKeyword] = React.useState('')
   const [article, setArticle] = React.useState<NewsArticle | null>(null)
 
   React.useEffect(() => {
@@ -96,7 +97,8 @@ function NewsEditContent() {
           published: found.published,
           meta_title: found.meta_title ?? '',
           meta_description: found.meta_description ?? '',
-          keywords: found.keywords ?? ''
+          keywords: found.keywords ?? '',
+          focus_keyword: found.focus_keyword ?? ''
         })
       } catch {
         if (!cancelled) router.replace('/dashboard/news/')
@@ -306,8 +308,8 @@ function NewsEditContent() {
                 keywords: formData.keywords,
                 featuredImageUrl: formData.featured_image || undefined
               }}
-              focusKeyword={focusKeyword}
-              onFocusKeywordChange={setFocusKeyword}
+              focusKeyword={formData.focus_keyword}
+              onFocusKeywordChange={(v) => setFormData((prev) => ({ ...prev, focus_keyword: v }))}
             />
 
             <div className="flex gap-3 pt-4 border-t">

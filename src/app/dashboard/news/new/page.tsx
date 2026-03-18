@@ -35,7 +35,8 @@ const initialFormData = {
   published: 0,
   meta_title: '',
   meta_description: '',
-  keywords: ''
+  keywords: '',
+  focus_keyword: ''
 }
 
 export default function NewsNewPage() {
@@ -45,8 +46,6 @@ export default function NewsNewPage() {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [uploadError, setUploadError] = React.useState<string | null>(null)
-  const [focusKeyword, setFocusKeyword] = React.useState('')
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -234,8 +233,8 @@ export default function NewsNewPage() {
                 keywords: formData.keywords,
                 featuredImageUrl: formData.featured_image || undefined
               }}
-              focusKeyword={focusKeyword}
-              onFocusKeywordChange={setFocusKeyword}
+              focusKeyword={formData.focus_keyword}
+              onFocusKeywordChange={(v) => setFormData((prev) => ({ ...prev, focus_keyword: v }))}
             />
 
             <div className="flex gap-3 pt-4 border-t">
