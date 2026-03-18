@@ -74,7 +74,8 @@ const initialFormData = {
   priority: 0,
   meta_title: '',
   meta_description: '',
-  keywords: ''
+  keywords: '',
+  focus_keyword: ''
 }
 
 export default function ProductionNewPage() {
@@ -83,7 +84,6 @@ export default function ProductionNewPage() {
   const [categories, setCategories] = React.useState<Category[]>([])
   const [formData, setFormData] = React.useState(initialFormData)
   const [colorVariants, setColorVariants] = React.useState<Record<string, string[]>>({ 'Trắng': [] })
-  const [focusKeyword, setFocusKeyword] = React.useState('')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -425,8 +425,8 @@ export default function ProductionNewPage() {
                 metaDescription: formData.meta_description,
                 keywords: formData.keywords
               }}
-              focusKeyword={focusKeyword}
-              onFocusKeywordChange={setFocusKeyword}
+              focusKeyword={formData.focus_keyword}
+              onFocusKeywordChange={(v) => setFormData((prev) => ({ ...prev, focus_keyword: v }))}
             />
 
             <div className="flex gap-3 pt-4 border-t">

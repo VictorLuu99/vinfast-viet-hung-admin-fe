@@ -46,6 +46,7 @@ interface Product {
   meta_title?: string | null
   meta_description?: string | null
   keywords?: string | null
+  focus_keyword?: string | null
   created_at: string
   updated_at: string
 }
@@ -232,10 +233,10 @@ function ProductionEditContent() {
     priority: 0,
     meta_title: '',
     meta_description: '',
-    keywords: ''
+    keywords: '',
+    focus_keyword: ''
   })
   const [colorVariants, setColorVariants] = React.useState<Record<string, string[]>>({ 'Trắng': [] })
-  const [focusKeyword, setFocusKeyword] = React.useState('')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
@@ -288,7 +289,8 @@ function ProductionEditContent() {
           priority: found.priority,
           meta_title: found.meta_title ?? '',
           meta_description: found.meta_description ?? '',
-          keywords: found.keywords ?? ''
+          keywords: found.keywords ?? '',
+          focus_keyword: found.focus_keyword ?? ''
         })
       } catch {
         if (!cancelled) router.replace('/dashboard/production/')
@@ -639,8 +641,8 @@ function ProductionEditContent() {
                 metaDescription: formData.meta_description,
                 keywords: formData.keywords
               }}
-              focusKeyword={focusKeyword}
-              onFocusKeywordChange={setFocusKeyword}
+              focusKeyword={formData.focus_keyword}
+              onFocusKeywordChange={(v) => setFormData((prev) => ({ ...prev, focus_keyword: v }))}
             />
 
             <div className="flex gap-3 pt-4 border-t">
