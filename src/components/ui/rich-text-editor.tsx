@@ -277,7 +277,7 @@ export function RichTextEditor({
                   if (!file) return
 
                   // Upload to R2 via API and insert the returned URL.
-                  // Do NOT embed as base64 — D1 will reject large rows (SQLITE_TOOBIG).
+                  // Never embed as base64 — D1 will reject large rows (SQLITE_TOOBIG).
                   setIsUploading(true)
                   apiClient
                     .uploadEditorFile(file, file.name)
