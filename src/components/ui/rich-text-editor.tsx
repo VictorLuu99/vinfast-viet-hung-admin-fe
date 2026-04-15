@@ -271,22 +271,38 @@ export function RichTextEditor({
                 const input = document.createElement('input')
                 input.setAttribute('type', 'file')
                 input.setAttribute('accept', 'image/*')
-                
+
                 input.onchange = function () {
                   const file = (this as HTMLInputElement).files?.[0]
-                  if (file) {
-                    const reader = new FileReader()
-                    reader.onload = function () {
-                      const img = document.createElement('img') as HTMLImageElement
-                      img.onload = function () {
-                        callback(reader.result as string, { alt: file.name })
+                  if (!file) return
+
+                  // Upload to R2 via API and insert the returned URL.
+                  // Do NOT embed as base64 — D1 will reject large rows (SQLITE_TOOBIG).
+                  setIsUploading(true)
+                  apiClient
+                    .uploadEditorFile(file, file.name)
+                    .then((result) => {
+                      const r = result as ImageUploadResult
+                      if (r.success && r.data?.url) {
+                        callback(r.data.url, { alt: file.name })
+                      } else {
+                        showToast({
+                          type: 'error',
+                          title: 'Upload Failed',
+                          description: r.error || 'Không thể tải ảnh lên'
+                        })
                       }
-                      img.src = reader.result as string
-                    }
-                    reader.readAsDataURL(file)
-                  }
+                    })
+                    .catch((err) => {
+                      showToast({
+                        type: 'error',
+                        title: 'Upload Error',
+                        description: err instanceof Error ? err.message : 'Upload failed'
+                      })
+                    })
+                    .finally(() => setIsUploading(false))
                 }
-                
+
                 input.click()
               }
             },
