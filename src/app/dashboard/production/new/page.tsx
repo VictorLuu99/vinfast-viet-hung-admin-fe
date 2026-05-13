@@ -3,6 +3,8 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+import type { Block } from '@blocknote/core'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,10 +15,14 @@ import { ArrowLeft, Save } from 'lucide-react'
 import { apiClient } from '@/lib/utils'
 import { useToast, toast } from '@/components/ui/toast'
 import { ImageGallery } from '@/components/ui/image-gallery'
-import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
 import { SeoScorePanel } from '@/components/seo/SeoScorePanel'
 import { MetaLengthHint } from '@/components/seo/MetaLengthHint'
 import { GooglePreviewSnippet } from '@/components/seo/GooglePreviewSnippet'
+
+const NotionEditor = dynamic(
+  () => import('@/components/editor/NotionEditor').then(m => m.NotionEditor),
+  { ssr: false }
+)
 
 interface Category {
   id: number
@@ -61,6 +67,7 @@ const initialFormData = {
   original_price: 0,
   discount: 0,
   description: '',
+  description_blocks: null as Block[] | null,
   tagline: '',
   range_km: 0,
   power_w: 0,
@@ -110,6 +117,9 @@ export default function ProductionNewPage() {
     const defaultColor = colorsArray[0] || ''
     const submissionData = {
       ...formData,
+      description_blocks: formData.description_blocks
+        ? JSON.stringify(formData.description_blocks)
+        : null,
       color_variants: colorVariantsJSON,
       colors: colorsJSON,
       default_color: defaultColor
@@ -241,12 +251,15 @@ export default function ProductionNewPage() {
             </div>
 
             <div className="space-y-2">
-              <ReactQuillEditor
-                value={formData.description}
-                onChange={(content) => setFormData((prev) => ({ ...prev, description: content }))}
-                placeholder="Mô tả chi tiết sản phẩm..."
+              <NotionEditor
+                initialBlocks={formData.description_blocks}
+                initialHtml={formData.description}
+                onChange={({ blocks, html }) =>
+                  setFormData(prev => ({ ...prev, description_blocks: blocks, description: html }))
+                }
                 label="Mô tả chi tiết"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
