@@ -15,6 +15,7 @@ const ALLOWED_MIME = new Set<string>([
 function getApiBaseUrl(): string {
   return (
     process.env.NEXT_PUBLIC_API_URL ||
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (typeof window !== "undefined" && (window as any).__API_URL__) ||
     "http://localhost:8787"
   );
@@ -51,6 +52,7 @@ export async function uploadToR2(file: File): Promise<string> {
     body: formData,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let payload: any = null;
   try {
     payload = await response.json();

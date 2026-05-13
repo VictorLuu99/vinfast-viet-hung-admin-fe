@@ -13,7 +13,7 @@ export const ToggleBlock = createReactBlockSpec(
     content: "inline",
   },
   {
-    render: ({ block, editor, contentRef }) => {
+    render: function ToggleBlockRender({ block, editor, contentRef }) {
       const [open, setOpen] = useState(block.props.open as boolean);
 
       return (

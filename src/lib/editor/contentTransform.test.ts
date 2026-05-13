@@ -11,10 +11,12 @@ describe("serializeBlocks", () => {
   });
 
   it("returns null for null input", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(serializeBlocks(null as any)).toBeNull();
   });
 
   it("returns JSON string for non-empty blocks", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const blocks = [{ id: "1", type: "paragraph", props: {}, content: [], children: [] }] as any;
     const result = serializeBlocks(blocks);
     expect(typeof result).toBe("string");
@@ -53,6 +55,7 @@ describe("isLegacyHtml", () => {
   });
 
   it("returns false when blocks exist", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(isLegacyHtml({ blocks: [{ id: "1" } as any], html: "<p>x</p>" })).toBe(false);
   });
 
