@@ -3,6 +3,8 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
+import type { Block } from '@blocknote/core'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,16 +15,21 @@ import { ArrowLeft, Save } from 'lucide-react'
 import { apiClient } from '@/lib/utils'
 import { useToast, toast } from '@/components/ui/toast'
 import { FileUpload } from '@/components/ui/file-upload'
-import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
 import { SeoScorePanel } from '@/components/seo/SeoScorePanel'
 import { MetaLengthHint } from '@/components/seo/MetaLengthHint'
 import { GooglePreviewSnippet } from '@/components/seo/GooglePreviewSnippet'
+
+const NotionEditor = dynamic(
+  () => import('@/components/editor/NotionEditor').then(m => m.NotionEditor),
+  { ssr: false }
+)
 
 interface NewsArticle {
   id: number
   title: string
   slug?: string
   content: string
+  content_blocks?: string | Block[] | null
   excerpt?: string
   featured_image?: string
   category: string
@@ -51,6 +58,7 @@ function NewsEditContent() {
   const [formData, setFormData] = React.useState({
     title: '',
     content: '',
+    content_blocks: null as Block[] | null,
     excerpt: '',
     featured_image: '',
     category: 'tin-cong-ty',
@@ -88,9 +96,21 @@ function NewsEditContent() {
           return
         }
         setArticle(found)
+        let parsedBlocks: Block[] | null = null
+        if (found.content_blocks) {
+          try {
+            parsedBlocks = typeof found.content_blocks === 'string'
+              ? JSON.parse(found.content_blocks) as Block[]
+              : found.content_blocks as Block[]
+          } catch {
+            console.warn('Failed to parse content_blocks, falling back to null')
+            parsedBlocks = null
+          }
+        }
         setFormData({
           title: found.title,
           content: found.content,
+          content_blocks: parsedBlocks,
           excerpt: found.excerpt || '',
           featured_image: found.featured_image || '',
           category: found.category,
@@ -116,7 +136,13 @@ function NewsEditContent() {
     try {
       setIsSubmitting(true)
       setError(null)
-      const response = await apiClient.updateNews(id, formData)
+      const payload = {
+        ...formData,
+        content_blocks: formData.content_blocks
+          ? JSON.stringify(formData.content_blocks)
+          : null,
+      }
+      const response = await apiClient.updateNews(id, payload)
       if (response.success) {
         showToast(toast.success('Cập nhật thành công', 'Tin tức đã được cập nhật'))
         router.push('/dashboard/news/')
@@ -288,11 +314,13 @@ function NewsEditContent() {
             </div>
 
             <div className="space-y-2">
-              <ReactQuillEditor
-                value={formData.content}
-                onChange={(content) => setFormData((prev) => ({ ...prev, content }))}
-                placeholder="Nhập nội dung bài viết..."
-                label="Nội dung"
+              <NotionEditor
+                initialBlocks={formData.content_blocks}
+                initialHtml={formData.content}
+                onChange={({ blocks, html }) =>
+                  setFormData(prev => ({ ...prev, content_blocks: blocks, content: html }))
+                }
+                label="Nội dung bài viết"
                 required
                 disabled={isSubmitting}
               />

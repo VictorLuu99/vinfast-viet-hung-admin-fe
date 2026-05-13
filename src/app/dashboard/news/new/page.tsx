@@ -3,6 +3,8 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+import type { Block } from '@blocknote/core'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,10 +15,14 @@ import { ArrowLeft, Save } from 'lucide-react'
 import { apiClient } from '@/lib/utils'
 import { useToast, toast } from '@/components/ui/toast'
 import { FileUpload } from '@/components/ui/file-upload'
-import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
 import { SeoScorePanel } from '@/components/seo/SeoScorePanel'
 import { MetaLengthHint } from '@/components/seo/MetaLengthHint'
 import { GooglePreviewSnippet } from '@/components/seo/GooglePreviewSnippet'
+
+const NotionEditor = dynamic(
+  () => import('@/components/editor/NotionEditor').then(m => m.NotionEditor),
+  { ssr: false }
+)
 
 const vietnameseCategories = [
   { value: 'tin-cong-ty', label: 'Tin công ty' },
@@ -29,6 +35,7 @@ const vietnameseCategories = [
 const initialFormData = {
   title: '',
   content: '',
+  content_blocks: null as Block[] | null,
   excerpt: '',
   featured_image: '',
   category: 'tin-cong-ty',
@@ -51,7 +58,13 @@ export default function NewsNewPage() {
     try {
       setIsSubmitting(true)
       setError(null)
-      const response = await apiClient.createNews(formData)
+      const payload = {
+        ...formData,
+        content_blocks: formData.content_blocks
+          ? JSON.stringify(formData.content_blocks)
+          : null,
+      }
+      const response = await apiClient.createNews(payload)
       if (response.success) {
         showToast(toast.success('Tạo thành công', 'Tin tức mới đã được tạo'))
         router.push('/dashboard/news')
@@ -213,11 +226,13 @@ export default function NewsNewPage() {
             </div>
 
             <div className="space-y-2">
-              <ReactQuillEditor
-                value={formData.content}
-                onChange={(content) => setFormData((prev) => ({ ...prev, content }))}
-                placeholder="Nhập nội dung bài viết..."
-                label="Nội dung"
+              <NotionEditor
+                initialBlocks={formData.content_blocks}
+                initialHtml={formData.content}
+                onChange={({ blocks, html }) =>
+                  setFormData(prev => ({ ...prev, content_blocks: blocks, content: html }))
+                }
+                label="Nội dung bài viết"
                 required
                 disabled={isSubmitting}
               />
