@@ -1,6 +1,8 @@
 'use client'
 
 import * as React from 'react'
+import dynamic from 'next/dynamic'
+import type { Block } from '@blocknote/core'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,13 +11,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { ReactQuillEditor } from '@/components/ui/react-quill-editor'
 import { apiClient, formatDate, getStatusBadgeVariant } from '@/lib/utils'
+
 import { Search, Plus, Edit, Trash2, Briefcase, MapPin, Clock, Calendar, Filter } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useToast, toast } from '@/components/ui/toast'
 import { useConfirmationDialog, confirmations } from '@/components/ui/confirmation-dialog'
+
+const NotionEditor = dynamic(
+  () => import('@/components/editor/NotionEditor').then(m => m.NotionEditor),
+  { ssr: false }
+)
 
 // VinFast Vietnamese-only job interface
 interface Job {
@@ -66,8 +73,11 @@ export default function JobsPage() {
   const [formData, setFormData] = React.useState({
     title: '',
     description: '',
+    description_blocks: null as Block[] | null,
     requirements: '',
+    requirements_blocks: null as Block[] | null,
     benefits: '',
+    benefits_blocks: null as Block[] | null,
     location: 'Việt Nam',
     salary_min: 0,
     salary_max: 0,
@@ -105,9 +115,15 @@ export default function JobsPage() {
   const handleSave = async () => {
     try {
       setIsSubmitting(true)
+      const payload = {
+        ...formData,
+        description_blocks: formData.description_blocks ? JSON.stringify(formData.description_blocks) : null,
+        requirements_blocks: formData.requirements_blocks ? JSON.stringify(formData.requirements_blocks) : null,
+        benefits_blocks: formData.benefits_blocks ? JSON.stringify(formData.benefits_blocks) : null,
+      }
       const response = selectedJob
-        ? await apiClient.updateJob(selectedJob.id.toString(), formData)
-        : await apiClient.createJob(formData)
+        ? await apiClient.updateJob(selectedJob.id.toString(), payload)
+        : await apiClient.createJob(payload)
 
       if (response) {
         await fetchJobs()
@@ -146,8 +162,11 @@ export default function JobsPage() {
     setFormData({
       title: '',
       description: '',
+      description_blocks: null,
       requirements: '',
+      requirements_blocks: null,
       benefits: '',
+      benefits_blocks: null,
       location: 'Việt Nam',
       salary_min: 0,
       salary_max: 0,
@@ -166,11 +185,48 @@ export default function JobsPage() {
   const openEditor = (job?: Job) => {
     if (job) {
       setSelectedJob(job)
+      // Parse blocks fields from API response with try/catch
+      let parsedDescriptionBlocks: Block[] | null = null
+      if ((job as unknown as Record<string, unknown>).description_blocks) {
+        try {
+          const raw = (job as unknown as Record<string, unknown>).description_blocks
+          parsedDescriptionBlocks = typeof raw === 'string'
+            ? JSON.parse(raw) as Block[]
+            : raw as Block[]
+        } catch {
+          console.warn('Failed to parse description_blocks')
+        }
+      }
+      let parsedRequirementsBlocks: Block[] | null = null
+      if ((job as unknown as Record<string, unknown>).requirements_blocks) {
+        try {
+          const raw = (job as unknown as Record<string, unknown>).requirements_blocks
+          parsedRequirementsBlocks = typeof raw === 'string'
+            ? JSON.parse(raw) as Block[]
+            : raw as Block[]
+        } catch {
+          console.warn('Failed to parse requirements_blocks')
+        }
+      }
+      let parsedBenefitsBlocks: Block[] | null = null
+      if ((job as unknown as Record<string, unknown>).benefits_blocks) {
+        try {
+          const raw = (job as unknown as Record<string, unknown>).benefits_blocks
+          parsedBenefitsBlocks = typeof raw === 'string'
+            ? JSON.parse(raw) as Block[]
+            : raw as Block[]
+        } catch {
+          console.warn('Failed to parse benefits_blocks')
+        }
+      }
       setFormData({
         title: job.title || '',
         description: job.description || '',
+        description_blocks: parsedDescriptionBlocks,
         requirements: job.requirements || '',
+        requirements_blocks: parsedRequirementsBlocks,
         benefits: job.benefits || '',
+        benefits_blocks: parsedBenefitsBlocks,
         location: job.location || 'Việt Nam',
         salary_min: job.salary_min || 0,
         salary_max: job.salary_max || 0,
@@ -576,10 +632,13 @@ export default function JobsPage() {
 
             {/* Job Description */}
             <div className="space-y-4">
-              <ReactQuillEditor
-                value={formData.description}
-                onChange={(content) => setFormData(prev => ({ ...prev, description: content }))}
-                placeholder=""
+              <NotionEditor
+                initialBlocks={formData.description_blocks}
+                initialHtml={formData.description}
+                onChange={({ blocks, html }) =>
+                  setFormData(prev => ({ ...prev, description_blocks: blocks, description: html }))
+                }
+                label="Mô tả công việc"
                 required
                 disabled={isSubmitting}
               />
@@ -587,10 +646,13 @@ export default function JobsPage() {
 
             {/* Job Requirements */}
             <div className="space-y-4">
-              <ReactQuillEditor
-                value={formData.requirements}
-                onChange={(content) => setFormData(prev => ({ ...prev, requirements: content }))}
-                placeholder=""
+              <NotionEditor
+                initialBlocks={formData.requirements_blocks}
+                initialHtml={formData.requirements}
+                onChange={({ blocks, html }) =>
+                  setFormData(prev => ({ ...prev, requirements_blocks: blocks, requirements: html }))
+                }
+                label="Yêu cầu công việc"
                 required
                 disabled={isSubmitting}
               />
@@ -598,10 +660,12 @@ export default function JobsPage() {
 
             {/* Job Benefits */}
             <div className="space-y-4">
-              <ReactQuillEditor
-                value={formData.benefits}
-                onChange={(content) => setFormData(prev => ({ ...prev, benefits: content }))}
-                placeholder=""
+              <NotionEditor
+                initialBlocks={formData.benefits_blocks}
+                initialHtml={formData.benefits}
+                onChange={({ blocks, html }) =>
+                  setFormData(prev => ({ ...prev, benefits_blocks: blocks, benefits: html }))
+                }
                 label="Quyền lợi (Tùy chọn)"
                 disabled={isSubmitting}
               />
