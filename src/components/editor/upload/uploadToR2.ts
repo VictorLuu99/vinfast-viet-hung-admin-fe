@@ -23,6 +23,32 @@ function getApiBaseUrl(): string {
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
+
+  // 1) Cookie set by authSlice on login/refresh
+  const cookieMatch = document.cookie.match(/(?:^|;\s*)admin-token=([^;]+)/);
+  if (cookieMatch) {
+    const fromCookie = decodeURIComponent(cookieMatch[1]);
+    if (fromCookie && fromCookie !== "null" && fromCookie !== "undefined") {
+      return fromCookie;
+    }
+  }
+
+  // 2) Redux-persist root (key `persist:admin-root`) — store is JSON-stringified twice.
+  try {
+    const root = localStorage.getItem("persist:admin-root");
+    if (root) {
+      const parsedRoot = JSON.parse(root) as Record<string, string>;
+      const authRaw = parsedRoot?.auth;
+      if (authRaw) {
+        const auth = JSON.parse(authRaw) as { token?: string };
+        if (auth?.token) return auth.token;
+      }
+    }
+  } catch {
+    /* ignore parse errors */
+  }
+
+  // 3) Legacy fallback
   return localStorage.getItem("admin-token");
 }
 

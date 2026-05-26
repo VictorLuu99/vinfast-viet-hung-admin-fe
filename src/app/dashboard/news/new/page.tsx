@@ -29,7 +29,8 @@ const vietnameseCategories = [
   { value: 'san-pham-dich-vu', label: 'Sản phẩm & Dịch vụ' },
   { value: 'su-kien', label: 'Sự kiện' },
   { value: 'khuyen-mai', label: 'Khuyến mại' },
-  { value: 'tin-tuc-nganh', label: 'Tin tức ngành' }
+  { value: 'tin-tuc-nganh', label: 'Tin tức ngành' },
+  { value: 'cong-nghe', label: 'Công nghệ' }
 ]
 
 const initialFormData = {
