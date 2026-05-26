@@ -84,6 +84,25 @@ export function ReactQuillEditor({
           quillInstance.current.clipboard.dangerouslyPasteHTML(value)
         }
 
+        // Apply alt text to the most recently inserted image with matching URL.
+        // Quill's insertEmbed('image', url) doesn't accept alt, so we patch it on
+        // the rendered <img> via DOM after insertion and sync to React state.
+        const applyAltToImage = (imageUrl: string, alt: string) => {
+          const rootEl: HTMLElement = quillInstance.current.root
+          const imgs = rootEl.querySelectorAll<HTMLImageElement>(`img[src="${CSS.escape(imageUrl)}"]`)
+          const img = imgs.length > 0 ? imgs[imgs.length - 1] : null
+          if (img) {
+            if (alt) {
+              img.setAttribute('alt', alt)
+              img.setAttribute('title', alt)
+            } else {
+              img.removeAttribute('alt')
+              img.removeAttribute('title')
+            }
+            onChange(rootEl.innerHTML)
+          }
+        }
+
         // Configure image upload handler
         if (onImageUpload || apiClient) {
           const toolbar = quillInstance.current.getModule('toolbar')
@@ -118,6 +137,14 @@ export function ReactQuillEditor({
                 quillInstance.current.deleteText(range.index, 15)
                 quillInstance.current.insertEmbed(range.index, 'image', imageUrl, 'user')
                 quillInstance.current.setSelection(range.index + 1)
+
+                // Prompt for alt text (SEO-friendly description of the image)
+                const suggested = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim()
+                const alt = window.prompt(
+                  'Nhập mô tả (Alt) cho ảnh — giúp SEO và hỗ trợ người khiếm thị:',
+                  suggested
+                )
+                applyAltToImage(imageUrl, (alt ?? '').trim())
               } catch (error) {
                 quillInstance.current.deleteText(range.index, 15)
                 console.error('Image upload failed:', error)
@@ -150,6 +177,13 @@ export function ReactQuillEditor({
             quillInstance.current.deleteText(range.index, 15)
             quillInstance.current.insertEmbed(range.index, 'image', imageUrl, 'user')
             quillInstance.current.setSelection(range.index + 1)
+
+            const suggested = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim()
+            const alt = window.prompt(
+              'Nhập mô tả (Alt) cho ảnh — giúp SEO và hỗ trợ người khiếm thị:',
+              suggested
+            )
+            applyAltToImage(imageUrl, (alt ?? '').trim())
           } catch (err) {
             console.error('Paste/drop image upload failed:', err)
             alert('Không thể tải ảnh. Vui lòng thử lại.')
@@ -157,6 +191,29 @@ export function ReactQuillEditor({
         }
 
         const rootEl: HTMLElement = quillInstance.current.root
+
+        // Click an existing image inside the editor to edit its alt text.
+        rootEl.addEventListener('click', (e: MouseEvent) => {
+          const target = e.target as HTMLElement | null
+          if (!target || target.tagName !== 'IMG') return
+          const img = target as HTMLImageElement
+          const current = img.getAttribute('alt') || ''
+          const next = window.prompt(
+            'Sửa mô tả (Alt) cho ảnh — giúp SEO và hỗ trợ người khiếm thị:',
+            current
+          )
+          if (next === null) return
+          const trimmed = next.trim()
+          if (trimmed) {
+            img.setAttribute('alt', trimmed)
+            img.setAttribute('title', trimmed)
+          } else {
+            img.removeAttribute('alt')
+            img.removeAttribute('title')
+          }
+          onChange(rootEl.innerHTML)
+        })
+
         rootEl.addEventListener('paste', (e: ClipboardEvent) => {
           const items = e.clipboardData?.items
           if (!items) return

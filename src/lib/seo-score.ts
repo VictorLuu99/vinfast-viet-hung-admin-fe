@@ -188,8 +188,11 @@ export function seoScoreEngine(input: SeoScoreInput): SeoReport {
 
   const headings = parseHeadings(contentHtml)
   const hasH1 = type === 'product' ? true : headings.some((h) => h.level === 1) || !!h1Title
+  // Article title (h1Title) acts as the implicit H1 of the page, so the first
+  // in-content heading should logically be at H2 (level 2). Initializing
+  // prevLevel to 1 prevents flagging "H2 as first content heading" as a skip.
   let headingHierarchyOk = true
-  let prevLevel = 0
+  let prevLevel = hasH1 ? 1 : 0
   for (const h of headings) {
     if (h.level > prevLevel + 1) headingHierarchyOk = false
     prevLevel = h.level
@@ -257,7 +260,7 @@ export function seoScoreEngine(input: SeoScoreInput): SeoReport {
     suggestions.push('Thêm từ khóa trọng tâm vào 10% đầu nội dung.')
   }
   if (!headingHierarchyOk) {
-    suggestions.push('Chỉnh cấu trúc heading: không nhảy cấp (ví dụ H2 rồi mới tới H3).')
+    suggestions.push('Cấu trúc heading bị nhảy cấp: tiêu đề là H1, trong bài nên đi tuần tự H2 → H3 → H4 (không bỏ cấp).')
   }
   if (focusKeyword && (densityPercent < DENSITY_MIN || densityPercent > DENSITY_MAX)) {
     suggestions.push(`Mật độ từ khóa hiện tại ${seoAnalysis.keywordDensityPercent}%. Nên trong khoảng ${seoAnalysis.keywordDensityRecommended}.`)
